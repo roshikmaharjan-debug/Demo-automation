@@ -15,6 +15,7 @@ test("Login with wrong password", async ({ page }) => {
   await expect(page.locator(".error-message-container ")).toContainText(
     "Username and password do not match",
   );
+  await page.pause();
 });
 
 test("Login with locked out user", async ({ page }) => {
@@ -35,17 +36,27 @@ test("Add two items to cart and check it displays 2", async ({ page }) => {
    await expect(page.locator('.shopping_cart_badge')).toHaveText('2');
 });
 
- test.only('displays 6 items and sorts by price low to high', async ({ page }) => {
+ test('displays 6 items and sorts by price low to high', async ({ page }) => {
      const login = new Login(page);
   await login.gotoLoginPage();
   await login.Login("standard_user", "secret_sauce");
     const items = page.locator('.inventory_item');
     await expect(items).toHaveCount(6);
-
-    await page.locator('.product_sort_container').selectOption('lohi');
-    const prices = await page.locator('.inventory_item_price').allTextContents();
-    console.log(prices);
-    const nums = prices.map(p => parseFloat(p.replace('$', ''))); //parseFloat to convert string to number
-    
+    const nums = await login.filterByPriceLowToHigh();
     expect(nums).toEqual(nums.toSorted((a, b) => a - b)); 
+  });
+
+    test.only('completes order and shows confirmation', async ({ page }) => {
+    const login = new Login(page);
+    await login.gotoLoginPage();
+    await login.Login("standard_user", "secret_sauce"); 
+    await login.addItemToCart("Sauce Labs Backpack");
+      await login.goToCheckout();
+    await login.completeCheckout("Roshik","Maharjan","44600");
+    
+    await expect(page).toHaveURL(/checkout-step-two.html/);
+    await expect(page.locator('.summary_total_label')).toBeVisible();
+      await login.finishCheckout();
+
+    await expect(page.locator('.complete-header')).toHaveText('Thank you for your order!');
   });
