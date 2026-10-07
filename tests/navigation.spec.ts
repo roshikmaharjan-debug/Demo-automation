@@ -1,29 +1,20 @@
-import { expect, test } from "@playwright/test";
-import LoginPage from "../pages/login.page";
-import SideMenuPage from "../pages/side-menu.page";
-
+import { expect, test } from "../fixtures/fixtures.ts";
 test.describe("Navigation", () => {
-  let sideMenuPage: SideMenuPage;
 
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    sideMenuPage = new SideMenuPage(page);
-    await loginPage.goto();
-    await loginPage.login("standard_user", "secret_sauce");
-  });
-
-  test("logs out", async ({ page }) => {
+  test("logs out", async ({ page,sideMenuPage }) => {
     await sideMenuPage.logout();
-await expect(page).toHaveURL(/saucedemo\.com/);
+    await expect(page).toHaveURL(/saucedemo\.com/);
   });
 
-  test("opens the About page", async ({ page }) => {
+  test("opens the About page", async ({ page,sideMenuPage }) => {
     await sideMenuPage.openAbout();
     await expect(page).toHaveURL(/saucelabs\.com/);
   });
-  
-  test("opens the dynamic catalog spinner", async ({ page }) => {
+
+  test("opens the dynamic catalog spinner", async ({ page,sideMenuPage }) => {
     await sideMenuPage.openSpinner();
-    await expect(page.locator('[data-test*="spinner-container"]')).toBeVisible();
+    await expect(
+      page.locator('[data-test*="spinner-container"]'),
+    ).toBeVisible();
   });
 });

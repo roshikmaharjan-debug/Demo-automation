@@ -1,20 +1,11 @@
-import { expect, test } from "@playwright/test";
-import InventoryPage from "../pages/inventory.page";
-import LoginPage from "../pages/login.page";
 
+import { expect, test } from "../fixtures/fixtures.ts";
 
 test.describe("Inventory", () => {
-  let inventoryPage: InventoryPage;
 
-  test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    inventoryPage = new InventoryPage(page);
-    await loginPage.goto();
-    await loginPage.login("standard_user", "secret_sauce");
-  });
 
   test("displays six items sorted by price from low to high", async ({
-    page,
+    page,inventoryPage
   }) => {
     const items = inventoryPage.itemsLocator;
     await expect(items).toHaveCount(6);
@@ -24,11 +15,9 @@ test.describe("Inventory", () => {
     expect(prices).toEqual([...prices].sort((a, b) => a - b));
   });
 
-  test("opens an item and returns to the inventory", async ({ page }) => {
+  test("opens an item and returns to the inventory", async ({ page,inventoryPage }) => {
     await inventoryPage.openItem("Sauce Labs Backpack");
-    await expect(
-      page.locator('[data-test="inventory-item"]'),
-    ).toBeVisible();
+    await expect(page.locator('[data-test="inventory-item"]')).toBeVisible();
     await inventoryPage.backToProducts();
     await expect(page.locator('[data-test="inventory-list"]')).toBeVisible();
   });
