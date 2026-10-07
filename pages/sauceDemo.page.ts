@@ -19,6 +19,9 @@ class SauceDemo {
   back:Locator;
   menuBtn:Locator;
   logoutBtn:Locator;
+  catalog:Locator;
+  spinner:Locator;
+  abtSection:Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -39,6 +42,9 @@ class SauceDemo {
     this.back = page.getByRole("button", { name: "Back to products" });
     this.menuBtn = page.getByRole("button",{name:"Open Menu"});
     this.logoutBtn = page.getByRole("button",{name:"Logout"});
+    this.catalog = page.getByRole("button",{name:"Dynamic Catalog"});
+    this.spinner = page.getByRole("button",{name:"Spinner"});
+    this.abtSection = page.getByRole("link",{name:"About"});
   }
 
   async gotoLoginPage() {
@@ -93,6 +99,17 @@ class SauceDemo {
   async Logout(){
     await this.menuBtn.click();
     await this.logoutBtn.click();
+  }
+
+  async Spinner(){
+    await this.menuBtn.click();
+    await this.catalog.click();
+    await this.spinner.click();
+  }
+
+  async AboutSection(){
+    await this.menuBtn.click();
+    await this.abtSection.click();
   }
 }
 

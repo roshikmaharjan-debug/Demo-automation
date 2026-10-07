@@ -65,10 +65,25 @@ test.describe("Login Tests", () => {
     ).toBeVisible();
     await demo.backToProducts();
   });
-  test.only("Check Logout", async ({ page }) => {
+  test("Check Logout", async ({ page }) => {
     await demo.LoginPage("standard_user", "secret_sauce");  
     await demo.Logout();
     await expect(page).toHaveURL("https://www.saucedemo.com/");
   });
 
+  test("Spinner Test",async({page})=>{
+    await demo.LoginPage("standard_user", "secret_sauce");
+   
+    await demo.Spinner();
+    await expect(page.getByText("Test.allTheThings() T-Shirt (Red)")).toBeVisible();
+  });
+
+  test.only("About section",async({page})=>{
+    await demo.LoginPage("standard_user", "secret_sauce");
+    await demo.AboutSection();
+    await expect(page).toHaveTitle("Sauce Labs: AI-Unified Release Assurance Platform");
+
+  })
+
+ 
 });
