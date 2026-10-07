@@ -16,6 +16,9 @@ class SauceDemo {
   zip: Locator;
   continueBtn: Locator;
   finish: Locator;
+  back:Locator;
+  menuBtn:Locator;
+  logoutBtn:Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -33,6 +36,9 @@ class SauceDemo {
     this.zip = page.getByPlaceholder("Zip/Postal Code");
     this.continueBtn = page.getByRole("button", { name: "Continue" });
     this.finish = page.getByRole("button", { name: "Finish" });
+    this.back = page.getByRole("button", { name: "Back to products" });
+    this.menuBtn = page.getByRole("button",{name:"Open Menu"});
+    this.logoutBtn = page.getByRole("button",{name:"Logout"});
   }
 
   async gotoLoginPage() {
@@ -78,6 +84,15 @@ class SauceDemo {
   }
   async checkOutInventory(product:string) {
     await this.page.getByText(product).click();
+  }
+
+  async backToProducts(){
+    await this.back.click();
+  }
+
+  async Logout(){
+    await this.menuBtn.click();
+    await this.logoutBtn.click();
   }
 }
 

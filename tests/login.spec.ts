@@ -57,12 +57,18 @@ test.describe("Login Tests", () => {
     await expect(page.getByText("Thank you for your order!")).toBeVisible();
   });
 
-  test.only("Check out inventory ", async ({ page }) => {
+  test("Check out inventory and go back", async ({ page }) => {
     await demo.LoginPage("standard_user", "secret_sauce");
     await demo.checkOutInventory("Sauce Labs Backpack");
     await expect(
-      page.getByText("carry.allTheThings() with the sleek")
+      page.getByText("carry.allTheThings() with the sleek"),
     ).toBeVisible();
-
+    await demo.backToProducts();
   });
+  test.only("Check Logout", async ({ page }) => {
+    await demo.LoginPage("standard_user", "secret_sauce");  
+    await demo.Logout();
+    await expect(page).toHaveURL("https://www.saucedemo.com/");
+  });
+
 });
