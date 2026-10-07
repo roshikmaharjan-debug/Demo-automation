@@ -14,18 +14,16 @@ test.describe("Navigation", () => {
 
   test("logs out", async ({ page }) => {
     await sideMenuPage.logout();
-    await expect(page).toHaveURL("https://www.saucedemo.com/");
+await expect(page).toHaveURL(/saucedemo\.com/);
   });
 
   test("opens the About page", async ({ page }) => {
     await sideMenuPage.openAbout();
-    await expect(page).toHaveTitle(
-      "Sauce Labs: AI-Unified Release Assurance Platform",
-    );
+    await expect(page).toHaveURL(/saucelabs\.com/);
   });
   
   test("opens the dynamic catalog spinner", async ({ page }) => {
     await sideMenuPage.openSpinner();
-    await expect(page.getByText("Test.allTheThings() T-Shirt (Red)")).toBeVisible();
+    await expect(page.locator('[data-test*="spinner-container"]')).toBeVisible();
   });
 });

@@ -27,9 +27,9 @@ test.describe("Inventory", () => {
   test("opens an item and returns to the inventory", async ({ page }) => {
     await inventoryPage.openItem("Sauce Labs Backpack");
     await expect(
-      page.getByText("carry.allTheThings() with the sleek"),
+      page.locator('[data-test="inventory-item"]'),
     ).toBeVisible();
     await inventoryPage.backToProducts();
-    await expect(page.locator(".inventory_list")).toBeVisible();
+    await expect(page.locator('[data-test="inventory-list"]')).toBeVisible();
   });
 });

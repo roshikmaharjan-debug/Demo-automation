@@ -11,18 +11,18 @@ test.describe("Login", () => {
 
   test("logs in successfully", async ({ page }) => {
     await loginPage.login("standard_user", "secret_sauce");
-    await expect(page).toHaveURL("https://www.saucedemo.com/inventory.html");
+    await expect(page).toHaveURL("/inventory.html");
   });
 
   test("shows an error for an incorrect password", async ({ page }) => {
     await loginPage.login("standard_user", "asd");
     await expect(
-      page.getByText("Username and password do not match"),
+      page.getByText(/do not match/i),
     ).toBeVisible();
   });
 
   test("shows an error for a locked-out user", async ({ page }) => {
     await loginPage.login("locked_out_user", "secret_sauce");
-    await expect(page.getByText("locked out")).toBeVisible();
+    await expect(page.getByText(/locked out/i)).toBeVisible();
   });
 });

@@ -18,7 +18,7 @@ test.describe("Cart and checkout", () => {
   test("adds two items to the cart", async ({ page }) => {
     await inventoryPage.addItemToCart("Sauce Labs Backpack");
     await inventoryPage.addItemToCart("Sauce Labs Bike Light");
-    await expect(page.locator(".shopping_cart_badge")).toHaveText("2");
+    await expect(page.locator('[data-test="shopping-cart-badge"]')).toHaveText("2");
   });
 
   test("completes an order and shows confirmation", async ({ page }) => {
@@ -32,7 +32,7 @@ test.describe("Cart and checkout", () => {
     );
 
     await expect(page).toHaveURL(/checkout-step-two.html/);
-    await expect(page.locator(".summary_total_label")).toBeVisible();
+    await expect(page.locator('[data-test="total-label"]')).toBeVisible();
     await cartCheckoutPage.finishCheckout();
 
     await expect(page.getByText("Thank you for your order!")).toBeVisible();
