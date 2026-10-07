@@ -14,7 +14,9 @@ type AppFixtures = {
 
 export const test = base.extend<AppFixtures>({
   loginPage: async ({ page }, use) => {
-    await use(new LoginPage(page));
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await use(loginPage);
   },
 
   loggedInPage: async ({ page }, use) => {
@@ -22,7 +24,7 @@ export const test = base.extend<AppFixtures>({
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login("standard_user", "secret_sauce");
-    await use(page);
+    await use(page); //Put page instead of loginPage to provide the logged-in page for tests
   },
 
   inventoryPage: async ({ loggedInPage }, use) => {

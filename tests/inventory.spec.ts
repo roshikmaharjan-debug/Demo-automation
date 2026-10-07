@@ -1,11 +1,9 @@
-
 import { expect, test } from "../fixtures/fixtures.ts";
 
 test.describe("Inventory", () => {
-
-
   test("displays six items sorted by price from low to high", async ({
-    page,inventoryPage
+    page,
+    inventoryPage,
   }) => {
     const items = inventoryPage.itemsLocator;
     await expect(items).toHaveCount(6);
@@ -15,7 +13,10 @@ test.describe("Inventory", () => {
     expect(prices).toEqual([...prices].sort((a, b) => a - b));
   });
 
-  test("opens an item and returns to the inventory", async ({ page,inventoryPage }) => {
+  test("opens an item and returns to the inventory", async ({
+    page,
+    inventoryPage,
+  }) => {
     await inventoryPage.openItem("Sauce Labs Backpack");
     await expect(page.locator('[data-test="inventory-item"]')).toBeVisible();
     await inventoryPage.backToProducts();
