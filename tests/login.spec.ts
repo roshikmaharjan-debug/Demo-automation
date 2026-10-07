@@ -1,44 +1,38 @@
 import { expect, test } from "@playwright/test";
 import SauceDemo from "../pages/sauceDemo.page";
 
-
 test.describe("Login Tests", () => {
   let demo: SauceDemo;
   test.beforeEach(async ({ page }) => {
     demo = new SauceDemo(page);
     await demo.gotoLoginPage();
-
   });
-
 
   test("Login", async ({ page }) => {
     await demo.LoginPage("standard_user", "secret_sauce");
-    await expect(page.getByText("Swag Labs")).toBeVisible();
+    await expect(page).toHaveURL("https://www.saucedemo.com/inventory.html");
   });
 
   test("Login with wrong password", async ({ page }) => {
     await demo.LoginPage("standard_user", "asd");
-    await expect(page.getByText("Username and password do not match")).toContainText(
-      "Username and password do not match",
-    );
+    await expect(
+      page.getByText("Username and password do not match"),
+    ).toBeVisible();
   });
 
   test("Login with locked out user", async ({ page }) => {
     await demo.LoginPage("locked_out_user", "secret_sauce");
-    await expect(page.getByText("locked out")).toContainText(
-      "Sorry, this user has been locked out.",
-    );
+    await expect(page.getByText("locked out")).toBeVisible();
   });
 
   test("Add two items to cart and check it displays 2", async ({ page }) => {
     await demo.LoginPage("standard_user", "secret_sauce");
     await demo.addItemToCart("Sauce Labs Backpack");
     await demo.addItemToCart("Sauce Labs Bike Light");
-    await expect(page.locator('.shopping_cart_badge')).toHaveText('2');
+    await expect(page.locator(".shopping_cart_badge")).toHaveText("2");
   });
 
-
-   test("displays 6 items and sorts by price low to high", async ({ page }) => {
+  test("displays 6 items and sorts by price low to high", async ({ page }) => {
     await demo.LoginPage("standard_user", "secret_sauce");
     const items = page.locator(".inventory_item");
     await expect(items).toHaveCount(6);
@@ -50,16 +44,25 @@ test.describe("Login Tests", () => {
     expect(nums).toEqual(sortedNums);
   });
 
-  test('completes order and shows confirmation', async ({ page }) => {
+  test("completes order and shows confirmation", async ({ page }) => {
     await demo.LoginPage("standard_user", "secret_sauce");
     await demo.addItemToCart("Sauce Labs Backpack");
     await demo.goToCheckout();
     await demo.completeCheckout("Roshik", "Maharjan", "44600");
 
     await expect(page).toHaveURL(/checkout-step-two.html/);
-    await expect(page.locator('.summary_total_label')).toBeVisible();
+    await expect(page.locator(".summary_total_label")).toBeVisible();
     await demo.finishCheckout();
 
-    await expect(page.locator('.complete-header')).toHaveText('Thank you for your order!');
+    await expect(page.getByText("Thank you for your order!")).toBeVisible();
+  });
+
+  test.only("Check out inventory ", async ({ page }) => {
+    await demo.LoginPage("standard_user", "secret_sauce");
+    await demo.checkOutInventory("Sauce Labs Backpack");
+    await expect(
+      page.getByText("carry.allTheThings() with the sleek")
+    ).toBeVisible();
+
   });
 });

@@ -52,7 +52,7 @@ class SauceDemo {
       .click();
   }
 
-  async filterByPriceLowToHigh():Promise<number[]> {
+  async filterByPriceLowToHigh(): Promise<number[]> {
     await this.filter.selectOption("lohi");
     const prices = await this.price.allTextContents();
 
@@ -76,6 +76,10 @@ class SauceDemo {
   async finishCheckout() {
     await this.finish.click();
   }
+  async checkOutInventory(product:string) {
+    await this.page.getByText(product).click();
+  }
 }
+
 
 export default SauceDemo;
