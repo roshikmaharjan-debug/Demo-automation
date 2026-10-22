@@ -31,7 +31,7 @@ class InventoryPage {
   }
 
   async sortPricesLowToHigh(): Promise<number[]> {
-    await this.filter.selectOption("hilo");
+    await this.filter.selectOption("lohi");
     const prices = await this.prices.allTextContents();
     return prices.map((price) => parseFloat(price.replace("$", "")));
   }

@@ -31,7 +31,7 @@ class CartCheckoutPage {
     await this.firstName.fill(firstName);
     await this.lastName.fill(lastName);
     await this.postalCode.fill(postalCode);
-    // await this.continueButton.click();
+    await this.continueButton.click();
   }
 
   async finishCheckout() {

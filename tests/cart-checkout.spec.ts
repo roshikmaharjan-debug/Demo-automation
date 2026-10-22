@@ -5,7 +5,7 @@ test.describe("Cart and checkout", () => {
     await inventoryPage.addItemToCart("Sauce Labs Backpack");
     await inventoryPage.addItemToCart("Sauce Labs Bike Light");
     await expect(page.locator('[data-test="shopping-cart-badge"]')).toHaveText(
-      "3",
+      "2",
     );
   });
 

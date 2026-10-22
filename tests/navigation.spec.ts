@@ -2,7 +2,7 @@ import { expect, test } from "../fixtures/fixtures.ts";
 test.describe("Navigation", () => {
   test("logs out", async ({ page, sideMenuPage }) => {
     await sideMenuPage.logout();
-    await expect(page).toHaveURL(/saucedemo\.com/);
+    await expect(page.getByPlaceholder("Username")).toBeVisible();
   });
 
   test("opens the About page", async ({ page, sideMenuPage }) => {

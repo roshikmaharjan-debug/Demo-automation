@@ -19,18 +19,18 @@ class SideMenuPage {
 
   async logout() {
     await this.menuButton.click();
-    // await this.logoutButton.click();
+    await this.logoutButton.click();
   }
 
   async openSpinner() {
     await this.menuButton.click();
     await this.catalogButton.click();
-    // await this.spinnerButton.click();
+    await this.spinnerButton.click();
   }
 
   async openAbout() {
     await this.menuButton.click();
-    // await this.aboutLink.click();
+    await this.aboutLink.click();
   }
 }
 
