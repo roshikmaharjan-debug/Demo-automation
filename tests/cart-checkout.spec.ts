@@ -1,15 +1,15 @@
 import { expect, test } from "../fixtures/fixtures.ts";
 
 test.describe("Cart and checkout", () => {
-  test("adds two items to the cart", async ({ page, inventoryPage }) => {
+   test("adds two items to the cart", async ({ page, inventoryPage }) => {
     await inventoryPage.addItemToCart("Sauce Labs Backpack");
-    await inventoryPage.addItemToCart("Sauce Labs Bike Light");
+    // await inventoryPage.addItemToCart("Sauce Labs Bike Light");
     await expect(page.locator('[data-test="shopping-cart-badge"]')).toHaveText(
       "2",
     );
   });
 
-  test("completes an order and shows confirmation", async ({
+ test("completes an order and shows confirmation", async ({
     page,
     cartCheckoutPage,
     inventoryPage,
@@ -30,3 +30,8 @@ test.describe("Cart and checkout", () => {
     await expect(page.getByText("Thank you for your order!")).toBeVisible();
   });
 });
+
+
+
+
+  
