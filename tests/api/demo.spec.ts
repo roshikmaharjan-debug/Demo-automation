@@ -1,7 +1,7 @@
 import { test, expect } from "../../fixtures/fixtures.ts";
 
-test("get api test", async ({ page }) => {
-  const response = await page.request.get(
+test("get api test", async ({ request }) => {
+  const response = await request.get(
     "https://jsonplaceholder.typicode.com/users/1",
   );
   expect(response.status()).toBe(200);
@@ -11,8 +11,8 @@ test("get api test", async ({ page }) => {
   expect(data.name).toBe("Leanne Graham");
 });
 
-test("post api test", async ({ page }) => {
-  const response = await page.request.post(
+test("post api test", async ({ request }) => {
+  const response = await request.post(
     "https://jsonplaceholder.typicode.com/posts",
     {
       data: {
