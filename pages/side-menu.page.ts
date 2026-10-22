@@ -24,13 +24,13 @@ class SideMenuPage {
 
   async openSpinner() {
     await this.menuButton.click();
-    // await this.catalogButton.click();
-    await this.spinnerButton.click();
+    await this.catalogButton.click();
+    // await this.spinnerButton.click();
   }
 
   async openAbout() {
-    // await this.menuButton.click();
-    await this.aboutLink.click();
+    await this.menuButton.click();
+    // await this.aboutLink.click();
   }
 }
 

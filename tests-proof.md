@@ -9,8 +9,8 @@ Each test was run with the described feature broken and then passed after restor
 | shows an error for a locked-out user | Used `standard_user` instead of `locked_out_user`. | Yes
 | displays six items sorted by price from low to high | Selected high-to-low sorting instead of low-to-high. | Yes
 | opens an item and returns to the inventory | Opened the Bike Light instead of the requested Backpack. | Yes
-| adds two items to the cart | Added an Onesie instead of the Bike Light. |  yes 
-| completes an order and shows confirmation | Skipped the Finish button click. | Yes
+| adds two items to the cart | Changed the count from 2 to 3 |  yes 
+| completes an order and shows confirmation | Skipped the Continue button click. | Yes
 | logs out | Skipped the Logout button click. |  no
 | opens the About page | Skipped the About link click. | Yes
 | opens the dynamic catalog spinner | Skipped the Spinner button click. | Yes
