@@ -3,7 +3,8 @@ import CartCheckoutPage from "../pages/cart-checkout.page";
 import InventoryPage from "../pages/inventory.page";
 
 test.describe("Problem user", () => {
- 
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   // Bug: entering the last name overwrites the first-name field; checkout should retain both values.
   test("completes checkout", async ({ page, loginPage }) => {
     test.fail();

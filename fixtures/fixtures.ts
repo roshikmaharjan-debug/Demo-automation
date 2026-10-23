@@ -20,11 +20,8 @@ export const test = base.extend<AppFixtures>({
   },
 
   loggedInPage: async ({ page }, use) => {
-    // this fixture logs in the user and provides a logged-in page for tests
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login("standard_user", "secret_sauce");
-    await use(page); //Put page instead of loginPage to provide the logged-in page for tests
+    await page.goto("/inventory.html");
+    await use(page);
   },
 
   inventoryPage: async ({ loggedInPage }, use) => {

@@ -1,6 +1,8 @@
 import { expect, test } from "../fixtures/fixtures.ts";
 
 test.describe("Login", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test("logs in successfully", async ({ page, loginPage }) => {
     await loginPage.login("standard_user", "secret_sauce");
     await expect(page).toHaveURL("/inventory.html");
@@ -19,4 +21,3 @@ test.describe("Login", () => {
     await expect(page.getByText(/locked out/i)).toBeVisible();
   });
 });
-
