@@ -1,6 +1,4 @@
-type LoginOutcome =
-  | { type: "inventory" }
-  | { type: "error"; message: string };
+type LoginOutcome = { type: "inventory" } | { type: "error"; message: string };
 
 type User = {
   username: string;

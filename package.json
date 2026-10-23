@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-     "test": "playwright test",
-     "format": "prettier --write .",
-    "format:check": "prettier --check ." 
+    "test": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "",
@@ -14,7 +14,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@types/node": "^26.6.4"
-    
+    "@types/node": "^26.6.4",
+    "prettier": "^3.9.10"
   }
 }

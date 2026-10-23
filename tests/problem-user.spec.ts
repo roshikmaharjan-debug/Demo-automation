@@ -10,7 +10,8 @@ test.describe("Problem user", () => {
     test.fail();
     test.info().annotations.push({
       type: "issue",
-      description: "Problem user checkout overwrites the first name with the last name.",
+      description:
+        "Problem user checkout overwrites the first name with the last name.",
     });
 
     await loginPage.login("problem_user", "secret_sauce");
