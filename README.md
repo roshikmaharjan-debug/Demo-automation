@@ -69,8 +69,10 @@ npx playwright show-report
 │   ├── cart-checkout.spec.ts
 │   ├── inventory.spec.ts
 │   ├── login.spec.ts
-│   └── navigation.spec.ts
-├── Fixtures.md
+│   ├── navigation.spec.ts
+│   ├── problem-user.spec.ts
+│   └── api/
+│       └── demo.spec.ts
 ├── playwright.config.ts
 └── package.json
 ```
@@ -88,6 +90,8 @@ npx playwright show-report
 - `inventory.spec.ts` — inventory count, price sorting, and product details.
 - `cart-checkout.spec.ts` — adding products and completing an order.
 - `navigation.spec.ts` — logout, About page, and dynamic catalog spinner.
+- `problem-user.spec.ts` — product image, cart, and checkout behavior for `problem_user`.
+- `api/demo.spec.ts` — GET, POST, PUT, and DELETE API requests.
 
 ## Example: page object and test
 
@@ -148,11 +152,8 @@ resolves to the Sauce Demo home page.
 
 ## Fixtures
 
-The project currently constructs page objects directly in its test setup.
-For an example of custom fixtures that provide page objects and optionally
-perform login automatically, see [Fixtures.md](./Fixtures.md). The fixture
-module described there is an example and must be added before tests can import
-it.
+The shared custom fixtures in `fixtures/fixtures.ts` provide page objects and
+login setup to the UI tests.
 
 ## Credentials
 
