@@ -4,9 +4,14 @@ import InventoryPage from "../pages/inventory.page";
 
 test.describe("Problem user", () => {
  
-
   // Bug: entering the last name overwrites the first-name field; checkout should retain both values.
   test("completes checkout", async ({ page, loginPage }) => {
+    test.fail();
+    test.info().annotations.push({
+      type: "issue",
+      description: "Problem user checkout overwrites the first name with the last name.",
+    });
+
     await loginPage.login("problem_user", "secret_sauce");
     const inventoryPage = new InventoryPage(page);
     const cartCheckoutPage = new CartCheckoutPage(page);
