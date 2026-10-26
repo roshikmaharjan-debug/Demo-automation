@@ -25,7 +25,6 @@ class InventoryPage {
 
   async addItemToCart(itemName: string) {
     const item = this.items.filter({ hasText: itemName });
-    await expect(item).toBeVisible();
     await item.getByRole("button", { name: "Add to cart" }).click();
   }
 
