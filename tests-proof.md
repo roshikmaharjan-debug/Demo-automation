@@ -51,8 +51,6 @@ Total: 19 tests in 7 files
 
 ## Performance glitch user trace
 
-Ran `npx playwright test tests/performance-glitch.spec.ts --trace on --reporter=line` and opened its trace with `npx playwright show-trace`. The login button click took **5.2 seconds**; the trace shows the delay between clicking Login and the inventory page finishing its navigation. Before clicking Add to cart, the test now waits for the Sauce Labs Backpack inventory item to be visible, which confirms the page has rendered the item the test is about to use.
+Ran `npx playwright test tests/performance-glitch.spec.ts --trace on --reporter=line` and opened its trace with `npx playwright show-trace`. The trace showed that login took **5.2 seconds**, and the test passed without any changes. Adding a `toBeVisible()` assertion before clicking Add to cart made the test flaky because that assertion has a separate 5-second timeout. The click already waits for the button using the full test timeout, so the assertion was unnecessary; removing it fixed the flakiness.
 
 ![Playwright trace timeline with the 5.2-second Login click selected](./tests/performance-glitch-trace.png)
-
-A fixed wait would only pause for an arbitrary duration: it could still be too short on a slower run and needlessly delay a faster one. Waiting for the actual Backpack item to appear lets the test proceed as soon as the required page state is ready and fail naturally if it never appears.

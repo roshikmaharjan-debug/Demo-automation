@@ -40,4 +40,13 @@ export const users: User[] = [
     password: "secret_sauce",
     expected: { type: "inventory" },
   },
+  {
+    username: "standard_user",
+    password: "wrong",
+    expected: {
+      type: "error",
+      message:
+        "Epic sadface: Username and password do not match any user in this service",
+    },
+  },
 ];

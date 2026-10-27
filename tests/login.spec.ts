@@ -5,7 +5,10 @@ test.describe("Login", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   for (const user of users) {
-    test(`logs in as ${user.username}`, async ({ page, loginPage }) => {
+    test(`logs in as ${user.username}${user.expected.type === "error" ? " (error)" : ""}`, async ({
+      page,
+      loginPage,
+    }) => {
       await loginPage.login(user.username, user.password);
 
       if (user.expected.type === "inventory") {
