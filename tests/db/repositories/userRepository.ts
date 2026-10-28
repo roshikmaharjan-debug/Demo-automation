@@ -16,11 +16,7 @@ export interface LoginResultRow {
 }
 
 export class UserRepository {
-  executor: SqlExecutor;
-
-  constructor() {
-    this.executor = new SqlExecutor();
-  }
+  constructor(private readonly executor: SqlExecutor) {}
 
   public getAll(): UserRow[] {
     return this.executor.all<UserRow>(USER_QUERIES.GET_ALL);
