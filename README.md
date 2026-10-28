@@ -153,6 +153,18 @@ resolves to the Sauce Demo home page.
 The shared custom fixtures in `fixtures/fixtures.ts` provide page objects and
 login setup to the UI tests.
 
+## Database-backed tests
+
+The login audit test uses a local SQLite database. Playwright initializes its
+schema and test accounts automatically before each run; no database server is
+required. See [docs/db-layers.md](./docs/db-layers.md) for the layer-by-layer
+design and [DATABASE.md](./DATABASE.md) for the database setup and
+troubleshooting guide.
+
+Run `npm run seed` to initialize or refresh the local SQLite schema and sample
+users without running the browser tests. Playwright also seeds the database
+automatically before a test run.
+
 ## Credentials
 
 The examples use Sauce Demo's public test account
