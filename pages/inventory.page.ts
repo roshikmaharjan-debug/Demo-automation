@@ -1,4 +1,4 @@
-import { Locator, Page } from "@playwright/test";
+import { expect, Locator, Page } from "@playwright/test";
 
 class InventoryPage {
   page: Page;
@@ -24,10 +24,8 @@ class InventoryPage {
   }
 
   async addItemToCart(itemName: string) {
-    await this.items
-      .filter({ hasText: itemName })
-      .getByRole("button", { name: "Add to cart" })
-      .click();
+    const item = this.items.filter({ hasText: itemName });
+    await item.getByRole("button", { name: "Add to cart" }).click();
   }
 
   async sortPricesLowToHigh(): Promise<number[]> {

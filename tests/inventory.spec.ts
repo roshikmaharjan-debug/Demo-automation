@@ -18,6 +18,7 @@ test.describe("Inventory", () => {
     inventoryPage,
   }) => {
     await inventoryPage.openItem("Sauce Labs Backpack");
+    await expect(page).toHaveURL(/.*inventory-item\.html/);
     await expect(page.locator(".inventory_details_name")).toHaveText(
       "Sauce Labs Backpack",
     );

@@ -1,22 +1,23 @@
 import { expect, test } from "../fixtures/fixtures.ts";
+import { users } from "./data/users.ts";
 
 test.describe("Login", () => {
-  test("logs in successfully", async ({ page, loginPage }) => {
-    await loginPage.login("standard_user", "secret_sauce");
-    await expect(page).toHaveURL("/inventory.html");
-  });
+  test.use({ storageState: { cookies: [], origins: [] } });
 
-  test("shows an error for an incorrect password", async ({
-    page,
-    loginPage,
-  }) => {
-    await loginPage.login("standard_user", "asd");
-    await expect(page.getByText(/do not match/i)).toBeVisible();
-  });
+  for (const user of users) {
+    test(`logs in as ${user.username}${user.expected.type === "error" ? " (error)" : ""}`, async ({
+      page,
+      loginPage,
+    }) => {
+      await loginPage.login(user.username, user.password);
 
-  test("shows an error for a locked-out user", async ({ page, loginPage }) => {
-    await loginPage.login("locked_out_user", "secret_sauce");
-    await expect(page.getByText(/locked out/i)).toBeVisible();
-  });
+      if (user.expected.type === "inventory") {
+        await expect(page).toHaveURL("/inventory.html");
+      } else {
+        await expect(
+          page.getByText(user.expected.message, { exact: true }),
+        ).toBeVisible();
+      }
+    });
+  }
 });
-
