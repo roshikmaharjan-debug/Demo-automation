@@ -7,8 +7,6 @@ test.describe("Login audit persistence tests", () => {
     db.userRepository.clearLoginResults();
   });
 
-
-
   test("persists and reads a login audit record", async ({
     page,
     loginPage,
@@ -31,7 +29,6 @@ test.describe("Login audit persistence tests", () => {
     expect(records).toHaveLength(1);
     expect(records[0].outcome).toBe("SUCCESS");
 
-   
     const nonExistent = db.userRepository.findLoginResultsByUsername(
       "ghost_user_never_exists",
     );
