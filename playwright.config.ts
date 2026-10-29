@@ -41,7 +41,13 @@ export default defineConfig({
       testMatch: /.*\.setup\.ts/,
     },
     {
+      // API tests need no browser and no logged-in UI session.
+      name: "api",
+      testMatch: /tests[\\/]api[\\/].*\.spec\.ts/,
+    },
+    {
       name: "chromium",
+      testIgnore: /tests[\\/]api[\\/]/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/user.json",

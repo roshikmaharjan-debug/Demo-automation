@@ -8,3 +8,6 @@ node_modules/
 /playwright/.auth/
 tests/data/*.db
 tests/data/*.db-*
+
+# Local API credentials (see .env.example)
+.env
