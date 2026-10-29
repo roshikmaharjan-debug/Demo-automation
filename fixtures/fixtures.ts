@@ -3,6 +3,8 @@ import CartCheckoutPage from "../pages/cart-checkout.page";
 import InventoryPage from "../pages/inventory.page";
 import LoginPage from "../pages/login.page";
 import SideMenuPage from "../pages/side-menu.page";
+import { DbManager } from "../tests/db/dbManager";
+import { DbConnection } from "../tests/db/dbConnection";
 
 type AppFixtures = {
   loginPage: LoginPage;
@@ -10,6 +12,7 @@ type AppFixtures = {
   inventoryPage: InventoryPage;
   cartCheckoutPage: CartCheckoutPage;
   sideMenuPage: SideMenuPage;
+  db: DbManager;
 };
 
 export const test = base.extend<AppFixtures>({
@@ -35,6 +38,14 @@ export const test = base.extend<AppFixtures>({
 
   sideMenuPage: async ({ loggedInPage }, use) => {
     await use(new SideMenuPage(loggedInPage));
+  },
+  db: async ({}, use) => {
+    const dbManager = new DbManager();
+    try {
+      await use(dbManager);
+    } finally {
+      DbConnection.close();
+    }
   },
 });
 

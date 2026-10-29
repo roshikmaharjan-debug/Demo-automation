@@ -65,14 +65,24 @@ npx playwright show-report
 │   ├── inventory.page.ts
 │   ├── login.page.ts
 │   └── side-menu.page.ts
+├── fixtures/
+│   └── fixtures.ts
+├── scripts/
+│   └── seed-db.ts
 ├── tests/
+│   ├── api/
+│   │   └── demo.spec.ts
+│   ├── db/
+│   ├── auth.setup.ts
 │   ├── cart-checkout.spec.ts
+│   ├── global-setup.ts
 │   ├── inventory.spec.ts
+│   ├── login-audit.spec.ts
 │   ├── login.spec.ts
 │   ├── navigation.spec.ts
+│   ├── performance-glitch.spec.ts
 │   ├── problem-user.spec.ts
-│   └── api/
-│       └── demo.spec.ts
+│   └── data/
 ├── playwright.config.ts
 └── package.json
 ```
@@ -91,7 +101,13 @@ npx playwright show-report
 - `cart-checkout.spec.ts` — adding products and completing an order.
 - `navigation.spec.ts` — logout, About page, and dynamic catalog spinner.
 - `problem-user.spec.ts` — product image, cart, and checkout behavior for `problem_user`.
+- `performance-glitch.spec.ts` — cart behavior for `performance_glitch_user`.
+- `login-audit.spec.ts` — login audit persistence against the local SQLite database.
 - `api/demo.spec.ts` — GET, POST, PUT, and DELETE API requests.
+
+Playwright runs the `setup` project before Chromium tests. The
+`tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
+browser storage state under `playwright/.auth/`.
 
 ## Example: page object and test
 
@@ -151,7 +167,18 @@ resolves to the Sauce Demo home page.
 ## Fixtures
 
 The shared custom fixtures in `fixtures/fixtures.ts` provide page objects and
-login setup to the UI tests.
+the database fixture to UI tests. Authentication state is prepared by the
+Playwright setup project.
+
+## Database-backed tests
+
+The login audit test uses a local SQLite database. Playwright's global setup
+initializes its schema and test accounts before each test run; no database
+server is required. See [docs/db-layers.md](./docs/db-layers.md) for the
+layer-by-layer design.
+
+Run `npm run seed` to initialize or refresh the local SQLite schema and sample
+users without running the browser tests.
 
 ## Credentials
 
