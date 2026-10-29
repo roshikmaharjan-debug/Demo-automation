@@ -5,6 +5,7 @@ import LoginPage from "../pages/login.page";
 import SideMenuPage from "../pages/side-menu.page";
 import { DbManager } from "../tests/db/dbManager";
 import { DbConnection } from "../tests/db/dbConnection";
+import { ApiManager } from "../tests/api/apiManager";
 
 type AppFixtures = {
   loginPage: LoginPage;
@@ -13,6 +14,7 @@ type AppFixtures = {
   cartCheckoutPage: CartCheckoutPage;
   sideMenuPage: SideMenuPage;
   db: DbManager;
+  api: ApiManager;
 };
 
 export const test = base.extend<AppFixtures>({
@@ -45,6 +47,19 @@ export const test = base.extend<AppFixtures>({
       await use(dbManager);
     } finally {
       DbConnection.close();
+    }
+  },
+
+  api: async ({}, use) => {
+    const apiManager = await ApiManager.create();
+    try {
+      await use(apiManager);
+    } finally {
+      try {
+        await apiManager.cleanup();
+      } finally {
+        await apiManager.dispose();
+      }
     }
   },
 });

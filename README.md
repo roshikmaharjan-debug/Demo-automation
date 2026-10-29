@@ -71,7 +71,13 @@ npx playwright show-report
 │   └── seed-db.ts
 ├── tests/
 │   ├── api/
-│   │   └── demo.spec.ts
+│   │   ├── clients/bookingClient.ts
+│   │   ├── models/booking.ts
+│   │   ├── apiConfig.ts
+│   │   ├── apiManager.ts
+│   │   ├── authSession.ts
+│   │   ├── booking.spec.ts
+│   │   └── httpClient.ts
 │   ├── db/
 │   ├── auth.setup.ts
 │   ├── cart-checkout.spec.ts
@@ -103,7 +109,11 @@ npx playwright show-report
 - `problem-user.spec.ts` — product image, cart, and checkout behavior for `problem_user`.
 - `performance-glitch.spec.ts` — cart behavior for `performance_glitch_user`.
 - `login-audit.spec.ts` — login audit persistence against the local SQLite database.
-- `api/demo.spec.ts` — GET, POST, PUT, and DELETE API requests.
+- `api/booking.spec.ts` — Restful Booker booking lifecycle and update-without-token tests. See [docs/api-layers.md](./docs/api-layers.md).
+
+Playwright runs the `setup` project before Chromium tests. The
+`tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
+browser storage state under `playwright/.auth/`.
 
 Playwright runs the `setup` project before Chromium tests. The
 `tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
@@ -179,6 +189,20 @@ layer-by-layer design.
 
 Run `npm run seed` to initialize or refresh the local SQLite schema and sample
 users without running the browser tests.
+
+## API tests
+
+The API tests run against [Restful Booker](https://restful-booker.herokuapp.com)
+in the `api` Playwright project (no browser). Copy `.env.example` to `.env`
+before running them locally:
+
+```bash
+npx playwright test --project=api
+```
+
+In CI, set the repository variable `API_BASE_URL` and the secrets
+`API_USERNAME` and `API_PASSWORD`. See
+[docs/api-layers.md](./docs/api-layers.md) for the layer-by-layer design.
 
 ## Credentials
 
