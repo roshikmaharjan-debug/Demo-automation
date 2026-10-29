@@ -7,6 +7,10 @@ test.describe("Login audit persistence tests", () => {
     db.userRepository.clearLoginResults();
   });
 
+  test.afterEach(async ({ db }) => {
+    db.userRepository.clearLoginResults();
+  });
+
   test("persists and reads a login audit record", async ({
     page,
     loginPage,
@@ -28,6 +32,12 @@ test.describe("Login audit persistence tests", () => {
     const records = db.userRepository.findLoginResultsByUsername(user.username);
     expect(records).toHaveLength(1);
     expect(records[0].outcome).toBe("SUCCESS");
+    expect(records[0].ran_at).toBe(executedAt);
+    const ranAt = Date.parse(records[0].ran_at);
+    const now = Date.now();
+    expect(Number.isNaN(ranAt)).toBe(false);
+    expect(ranAt).toBeGreaterThanOrEqual(now - 60_000);
+    expect(ranAt).toBeLessThanOrEqual(now);
 
     const nonExistent = db.userRepository.findLoginResultsByUsername(
       "ghost_user_never_exists",

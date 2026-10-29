@@ -1,21 +1,37 @@
 import { expect, test } from "../fixtures/fixtures.ts";
-import { users } from "./data/users.ts";
+import { DbConnection } from "./db/dbConnection";
+import { DbManager } from "./db/dbManager";
+
+const users = (() => {
+  const db = new DbManager();
+  try {
+    return db.userRepository.getAll();
+  } finally {
+    DbConnection.close();
+  }
+})();
 
 test.describe("Login", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   for (const user of users) {
-    test(`logs in as ${user.username}${user.expected.type === "error" ? " (error)" : ""}`, async ({
+    const isError = user.expected_type === "error";
+    test(`logs in as ${user.username}${isError ? " (error)" : ""}`, async ({
       page,
       loginPage,
     }) => {
       await loginPage.login(user.username, user.password);
 
-      if (user.expected.type === "inventory") {
+      if (!isError) {
         await expect(page).toHaveURL("/inventory.html");
       } else {
+        if (!user.expected_message) {
+          throw new Error(
+            `The expected error message for ${user.username} is missing.`,
+          );
+        }
         await expect(
-          page.getByText(user.expected.message, { exact: true }),
+          page.getByText(user.expected_message, { exact: true }),
         ).toBeVisible();
       }
     });

@@ -7,8 +7,7 @@ export class DbConnection {
   public static getDatabase(): Database.Database {
     if (!this.instance) {
       this.instance = new Database(DB_PATH);
-      // Optional: enable WAL mode for better concurrency
-      this.instance.pragma("journal_mode = WAL");
+      this.instance.pragma("journal_mode = DELETE");
     }
     return this.instance;
   }

@@ -5,6 +5,7 @@ export class DbManager {
   userRepository: UserRepository;
 
   constructor() {
-    this.userRepository = new UserRepository(new SqlExecutor());
+    const executor = new SqlExecutor();
+    this.userRepository = new UserRepository(executor);
   }
 }

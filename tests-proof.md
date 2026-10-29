@@ -48,19 +48,20 @@ Listing tests:
   [chromium] › cart-checkout.spec.ts:12:7 › Cart and checkout › completes an order and shows confirmation
   [chromium] › inventory.spec.ts:4:7 › Inventory › displays six items sorted by price from low to high
   [chromium] › inventory.spec.ts:16:7 › Inventory › opens an item and returns to the inventory
-  [chromium] › login.spec.ts:8:9 › Login › logs in as standard_user
-  [chromium] › login.spec.ts:8:9 › Login › logs in as locked_out_user (error)
-  [chromium] › login.spec.ts:8:9 › Login › logs in as problem_user
-  [chromium] › login.spec.ts:8:9 › Login › logs in as performance_glitch_user
-  [chromium] › login.spec.ts:8:9 › Login › logs in as error_user
-  [chromium] › login.spec.ts:8:9 › Login › logs in as visual_user
-  [chromium] › login.spec.ts:8:9 › Login › logs in as standard_user (error)
+  [chromium] › login-audit.spec.ts:14:7 › Login audit persistence tests › persists and reads a login audit record
+  [chromium] › login.spec.ts:19:9 › Login › logs in as standard_user
+  [chromium] › login.spec.ts:19:9 › Login › logs in as locked_out_user (error)
+  [chromium] › login.spec.ts:19:9 › Login › logs in as problem_user
+  [chromium] › login.spec.ts:19:9 › Login › logs in as performance_glitch_user
+  [chromium] › login.spec.ts:19:9 › Login › logs in as error_user
+  [chromium] › login.spec.ts:19:9 › Login › logs in as visual_user
+  [chromium] › login.spec.ts:19:9 › Login › logs in as wrong_password_user (error)
   [chromium] › navigation.spec.ts:3:7 › Navigation › logs out
   [chromium] › navigation.spec.ts:8:7 › Navigation › opens the About page
   [chromium] › navigation.spec.ts:13:7 › Navigation › opens the dynamic catalog spinner
   [chromium] › performance-glitch.spec.ts:6:5 › performance_glitch_user adds the Backpack to the cart
   [chromium] › problem-user.spec.ts:9:7 › Problem user › completes checkout
-Total: 21 tests in 8 files
+Total: 22 tests in 9 files
 ```
 
 ## Performance glitch user trace
@@ -68,3 +69,13 @@ Total: 21 tests in 8 files
 Ran `npx playwright test tests/performance-glitch.spec.ts --trace on --reporter=line` and opened its trace with `npx playwright show-trace`. The trace showed that login took **5.2 seconds**, and the test passed without any changes. Adding a `toBeVisible()` assertion before clicking Add to cart made the test flaky because that assertion has a separate 5-second timeout. The click already waits for the button using the full test timeout, so the assertion was unnecessary; removing it fixed the flakiness.
 
 ![Playwright trace timeline with the 5.2-second Login click selected](./docs/performance-glitch-trace.png)
+
+## Database audit insert mutation proof
+
+Temporarily changed `UserRepository.insertLoginResult` into a no-op, then ran
+`npx playwright test tests/login-audit.spec.ts --workers=1 --reporter=line`.
+The audit test failed at `toHaveLength(1)` with **Expected length: 1; Received
+length: 0**, demonstrating that the test detects a missing insert. Restored the
+repository insert and reran `npm test -- --workers=1 --reporter=line`; all 22
+tests passed. A read-only SQLite query after the run returned zero rows from
+`login_results`, confirming that `afterEach` cleanup ran.

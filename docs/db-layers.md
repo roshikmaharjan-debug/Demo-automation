@@ -17,13 +17,13 @@ Values still belong in bound parameters (`?`), not concatenated SQL strings.
 
 ### Why share a database connection instead of opening one for every query?
 
-Opening a SQLite file is resource setup: it creates a file handle and applies
-connection settings such as WAL mode. Reusing the lazily opened connection
-avoids doing that work for every query and ensures operations in one test use
-the same connection. Playwright workers run in separate processes, so each
-worker has its own in-process connection; the connection is closed when the
-test-scoped `db` fixture tears down. SQLite is file-backed, not a network
-database, and WAL mode does not remove SQLite's single-writer constraints.
+Opening a SQLite file creates a file handle. Reusing the lazily opened
+connection avoids doing that work for every query and ensures operations in
+one test use the same connection. The connection explicitly uses SQLite's default rollback-journal
+mode, including for existing database files. Playwright workers run in
+separate processes, so each worker has its own in-process connection; the
+connection is closed when the test-scoped `db` fixture tears down. The suite's
+brief local reads and writes do not need a separate journaling mode.
 
 ### Why call `userRepository.findByUsername(name)` instead of running SQL in a
 
@@ -84,11 +84,11 @@ Each layer has one job:
 | File                                      | Job                                                                                              | Must not                                                           |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
 | `tests/db/dbConfig.ts`                    | Resolve the configured SQLite file path from `DB_PATH`, defaulting to `tests/data/test-data.db`. | Open a database connection.                                        |
-| `tests/db/dbConnection.ts`                | Lazily open/cache the SQLite connection, enable WAL mode, and close it.                          | Contain SQL queries.                                               |
+| `tests/db/dbConnection.ts`                | Lazily open/cache the SQLite connection in rollback-journal mode and close it.                   | Contain SQL queries.                                               |
 | `tests/db/sqlExecutor.ts`                 | Execute prepared read and write statements with bound parameters.                                | Know table-specific repository methods or business rules.          |
 | `tests/db/queries/userSqlScripts.ts`      | Export named SQL statements.                                                                     | Contain functions or interpolate user values into SQL strings.     |
-| `tests/db/repositories/userRepository.ts` | Create its `SqlExecutor` and expose named, typed methods for user and login-result data.         | Build inline SQL strings or manage the connection lifecycle.       |
-| `tests/db/dbManager.ts`                   | Construct repositories and expose them to the fixture.                                           | Construct executors, run SQL, or seed records.                     |
+| `tests/db/repositories/userRepository.ts` | Expose named, typed methods for user and login-result data using its injected executor.          | Build inline SQL strings or manage the connection lifecycle.       |
+| `tests/db/dbManager.ts`                   | Construct one executor, inject it into repositories, and expose them to the fixture.             | Run SQL or seed records.                                           |
 | `fixtures/fixtures.ts`                    | Provide a `DbManager` to tests and close the connection during teardown.                         | Hide database errors or perform test-specific queries.             |
 | `scripts/seed-db.ts`                      | Create the schema and idempotently upsert sample users.                                          | Be imported or run by individual tests.                            |
 | `tests/global-setup.ts`                   | Seed the database before Playwright starts its projects.                                         | Contain schema or query definitions.                               |
@@ -113,10 +113,9 @@ Rerunning setup updates users with the same usernames rather than duplicating
 them. The audit table is not reset by seeding; the audit test clears its rows
 before and after its run.
 
-This repository's current implementation uses `tests/data/test-data.db` and
-automatic Playwright global setup. The project database file is tracked, but
-its checked-in starting state may be empty; the global setup creates and seeds
-the schema for both local runs and CI.
+The default database path is ignored by Git because test runs modify its
+contents. Global setup creates and seeds the schema for both local runs and
+CI.
 
 ## Schema and sample data
 
@@ -185,8 +184,5 @@ Common causes of failure:
   use the same `DB_PATH`.
 - **The seeded user is missing:** verify the seed completed and that the test
   reads the same database file the setup seeded.
-- **A database is locked:** close unrelated processes writing to the same file.
-  WAL improves reader/writer coexistence but SQLite still serializes writes.
-- **A stale `-wal` or `-shm` sidecar remains after an interrupted run:** first
-  close any process using the database, then remove only that database's
-  sidecar files if needed.
+- **A database is locked:** close unrelated processes using or writing to the
+  same file, then rerun the test.
