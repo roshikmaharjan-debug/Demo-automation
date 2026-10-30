@@ -1,12 +1,13 @@
-import { expect, test } from "../fixtures/fixtures.ts";
-import CartCheckoutPage from "../pages/cart-checkout.page";
-import InventoryPage from "../pages/inventory.page";
+import { expect, test } from "./fixtures/fixtures";
+import CartCheckoutPage from "./pages/cart-checkout.page";
+import InventoryPage from "./pages/inventory.page";
+import LoginPage from "./pages/login.page";
 
 test.describe("Problem user", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   // Bug: entering the last name overwrites the first-name field; checkout should retain both values.
-  test("completes checkout", async ({ page, loginPage }) => {
+  test("completes checkout", async ({ page }) => {
     test.fail();
     test.info().annotations.push({
       type: "issue",
@@ -14,6 +15,8 @@ test.describe("Problem user", () => {
         "Problem user checkout overwrites the first name with the last name.",
     });
 
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
     await loginPage.login("problem_user", "secret_sauce");
     const inventoryPage = new InventoryPage(page);
     const cartCheckoutPage = new CartCheckoutPage(page);

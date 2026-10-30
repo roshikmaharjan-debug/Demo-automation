@@ -1,6 +1,7 @@
-import { expect, test } from "../fixtures/fixtures.ts";
+import { expect, test } from "./fixtures/fixtures";
 import { DbConnection } from "./db/dbConnection";
 import { DbManager } from "./db/dbManager";
+import LoginPage from "./pages/login.page";
 
 const users = (() => {
   const db = new DbManager();
@@ -18,8 +19,9 @@ test.describe("Login", () => {
     const isError = user.expected_type === "error";
     test(`logs in as ${user.username}${isError ? " (error)" : ""}`, async ({
       page,
-      loginPage,
     }) => {
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
       await loginPage.login(user.username, user.password);
 
       if (!isError) {

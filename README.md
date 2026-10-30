@@ -60,19 +60,26 @@ npx playwright show-report
 
 ```text
 .
-├── pages/
-│   ├── cart-checkout.page.ts
-│   ├── inventory.page.ts
-│   ├── login.page.ts
-│   └── side-menu.page.ts
-├── fixtures/
-│   └── fixtures.ts
 ├── scripts/
 │   └── seed-db.ts
 ├── tests/
 │   ├── api/
-│   │   └── demo.spec.ts
+│   │   ├── clients/bookingClient.ts
+│   │   ├── models/booking.ts
+│   │   ├── apiConfig.ts
+│   │   ├── apiManager.ts
+│   │   ├── authSession.ts
+│   │   ├── booking.spec.ts
+│   │   └── httpClient.ts
 │   ├── db/
+│   ├── fixtures/
+│   │   └── fixtures.ts
+│   ├── pages/
+│   │   ├── cart-checkout.page.ts
+│   │   ├── inventory.page.ts
+│   │   ├── login.page.ts
+│   │   ├── POMManager.ts
+│   │   └── side-menu.page.ts
 │   ├── auth.setup.ts
 │   ├── cart-checkout.spec.ts
 │   ├── global-setup.ts
@@ -103,7 +110,15 @@ npx playwright show-report
 - `problem-user.spec.ts` — product image, cart, and checkout behavior for `problem_user`.
 - `performance-glitch.spec.ts` — cart behavior for `performance_glitch_user`.
 - `login-audit.spec.ts` — login audit persistence against the local SQLite database.
-- `api/demo.spec.ts` — GET, POST, PUT, and DELETE API requests.
+- `api/booking.spec.ts` — Restful Booker booking lifecycle and update-without-token tests. See [docs/api-layers.md](./docs/api-layers.md).
+
+Playwright runs the `setup` project before Chromium tests. The
+`tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
+browser storage state under `playwright/.auth/`.
+
+Playwright runs the `setup` project before Chromium tests. The
+`tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
+browser storage state under `playwright/.auth/`.
 
 Playwright runs the `setup` project before Chromium tests. The
 `tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
@@ -114,7 +129,7 @@ browser storage state under `playwright/.auth/`.
 The page object contains reusable page interactions:
 
 ```ts
-// pages/login.page.ts
+// tests/pages/login.page.ts
 import { Locator, Page } from "@playwright/test";
 
 class LoginPage {
@@ -150,7 +165,7 @@ the expected result:
 ```ts
 // tests/login.spec.ts
 import { expect, test } from "@playwright/test";
-import LoginPage from "../pages/login.page";
+import LoginPage from "./pages/login.page";
 
 test("logs in successfully", async ({ page }) => {
   const loginPage = new LoginPage(page);
@@ -166,9 +181,12 @@ resolves to the Sauce Demo home page.
 
 ## Fixtures
 
-The shared custom fixtures in `fixtures/fixtures.ts` provide page objects and
-the database fixture to UI tests. Authentication state is prepared by the
-Playwright setup project.
+The shared custom fixtures in `tests/fixtures/fixtures.ts` provide one
+`pomManager` per authenticated UI test; it is built with `loggedInPage`, which
+navigates to the inventory using the saved authentication state. Tests that
+start signed out should create only the page objects they need with Playwright's
+`page`. The same fixtures provide the database and API managers. Authentication
+state is prepared by the Playwright setup project.
 
 ## Database-backed tests
 
@@ -179,6 +197,20 @@ layer-by-layer design.
 
 Run `npm run seed` to initialize or refresh the local SQLite schema and sample
 users without running the browser tests.
+
+## API tests
+
+The API tests run against [Restful Booker](https://restful-booker.herokuapp.com)
+in the `api` Playwright project (no browser). Copy `.env.example` to `.env`
+before running them locally:
+
+```bash
+npx playwright test --project=api
+```
+
+In CI, set the repository variable `API_BASE_URL` and the secrets
+`API_USERNAME` and `API_PASSWORD`. See
+[docs/api-layers.md](./docs/api-layers.md) for the layer-by-layer design.
 
 ## Credentials
 

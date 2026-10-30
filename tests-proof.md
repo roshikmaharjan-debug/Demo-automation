@@ -79,3 +79,21 @@ length: 0**, demonstrating that the test detects a missing insert. Restored the
 repository insert and reran `npm test -- --workers=1 --reporter=line`; all 22
 tests passed. A read-only SQLite query after the run returned zero rows from
 `login_results`, confirming that `afterEach` cleanup ran.
+
+## API booking update mutation proof
+
+Temporarily changed `BookingClient.update` to return `{ status: 200, body: booking }`
+without sending an HTTP request, then ran
+`npx playwright test tests/api/booking.spec.ts --reporter=line`. Both API tests
+failed as expected:
+
+- The unauthenticated update check expected **403** but received **200**.
+- The lifecycle test read the booking back and expected the updated first name
+  `"Roshik1793263399937491Updated"` but received the unchanged
+  `"Roshik1793263399937491"`.
+
+This confirms the tests detect both the missing request and the unchanged saved
+booking. Restored `BookingClient.update` to send the PUT request. The first
+full-suite run had **19 passed and 1 failed** because the About-page test timed
+out waiting for its link; reran `npm test -- --reporter=line` with the restored
+code and all **20 tests passed**.

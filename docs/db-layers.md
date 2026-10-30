@@ -61,7 +61,7 @@ worker teardown is reliable when a test fails.
 tests/login-audit.spec.ts
         |
         v
-db fixture in fixtures/fixtures.ts
+db fixture in tests/fixtures/fixtures.ts
         |
         v
 DbManager
@@ -89,7 +89,7 @@ Each layer has one job:
 | `tests/db/queries/userSqlScripts.ts`      | Export named SQL statements.                                                                     | Contain functions or interpolate user values into SQL strings.     |
 | `tests/db/repositories/userRepository.ts` | Expose named, typed methods for user and login-result data using its injected executor.          | Build inline SQL strings or manage the connection lifecycle.       |
 | `tests/db/dbManager.ts`                   | Construct one executor, inject it into repositories, and expose them to the fixture.             | Run SQL or seed records.                                           |
-| `fixtures/fixtures.ts`                    | Provide a `DbManager` to tests and close the connection during teardown.                         | Hide database errors or perform test-specific queries.             |
+| `tests/fixtures/fixtures.ts`              | Provide a `DbManager` to tests and close the connection during teardown.                         | Hide database errors or perform test-specific queries.             |
 | `scripts/seed-db.ts`                      | Create the schema and idempotently upsert sample users.                                          | Be imported or run by individual tests.                            |
 | `tests/global-setup.ts`                   | Seed the database before Playwright starts its projects.                                         | Contain schema or query definitions.                               |
 | `tests/login-audit.spec.ts`               | Verify a browser login and an explicit database audit write/read.                                | Contain raw SQL or assume Sauce Demo writes to the local database. |
