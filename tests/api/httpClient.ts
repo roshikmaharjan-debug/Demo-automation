@@ -62,8 +62,6 @@ export class HttpClient {
       data: options.data,
       headers: options.headers,
     });
-    console.log(`[HTTP ${method}] ${path} -> ${response.status()}`);
-
     const contentType = response.headers()["content-type"] ?? "";
     const body = contentType.includes("application/json")
       ? await response.json()
