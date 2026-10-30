@@ -12,7 +12,8 @@ type AppFixtures = {
 };
 
 export const test = base.extend<AppFixtures>({
-  loggedInPage: async ({ page }, use) => {  //no POM call because sessionStorage logs in
+  loggedInPage: async ({ page }, use) => {
+    //no POM call because sessionStorage logs in
     await page.goto("/inventory.html");
     await use(page);
   },
