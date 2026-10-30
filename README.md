@@ -120,6 +120,10 @@ Playwright runs the `setup` project before Chromium tests. The
 `tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
 browser storage state under `playwright/.auth/`.
 
+Playwright runs the `setup` project before Chromium tests. The
+`tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
+browser storage state under `playwright/.auth/`.
+
 ## Example: page object and test
 
 The page object contains reusable page interactions:
