@@ -1,4 +1,4 @@
-import { expect, test } from "../../fixtures/fixtures";
+import { expect, test } from "../fixtures/fixtures";
 import type { Booking } from "./models/booking";
 
 // Unique data per test so we never confuse our booking with anyone else's.

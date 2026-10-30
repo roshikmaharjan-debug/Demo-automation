@@ -60,13 +60,6 @@ npx playwright show-report
 
 ```text
 .
-├── pages/
-│   ├── cart-checkout.page.ts
-│   ├── inventory.page.ts
-│   ├── login.page.ts
-│   └── side-menu.page.ts
-├── fixtures/
-│   └── fixtures.ts
 ├── scripts/
 │   └── seed-db.ts
 ├── tests/
@@ -79,6 +72,14 @@ npx playwright show-report
 │   │   ├── booking.spec.ts
 │   │   └── httpClient.ts
 │   ├── db/
+│   ├── fixtures/
+│   │   └── fixtures.ts
+│   ├── pages/
+│   │   ├── cart-checkout.page.ts
+│   │   ├── inventory.page.ts
+│   │   ├── login.page.ts
+│   │   ├── POMManager.ts
+│   │   └── side-menu.page.ts
 │   ├── auth.setup.ts
 │   ├── cart-checkout.spec.ts
 │   ├── global-setup.ts
@@ -120,7 +121,7 @@ browser storage state under `playwright/.auth/`.
 The page object contains reusable page interactions:
 
 ```ts
-// pages/login.page.ts
+// tests/pages/login.page.ts
 import { Locator, Page } from "@playwright/test";
 
 class LoginPage {
@@ -156,7 +157,7 @@ the expected result:
 ```ts
 // tests/login.spec.ts
 import { expect, test } from "@playwright/test";
-import LoginPage from "../pages/login.page";
+import LoginPage from "./pages/login.page";
 
 test("logs in successfully", async ({ page }) => {
   const loginPage = new LoginPage(page);
@@ -172,9 +173,12 @@ resolves to the Sauce Demo home page.
 
 ## Fixtures
 
-The shared custom fixtures in `fixtures/fixtures.ts` provide page objects and
-the database fixture to UI tests. Authentication state is prepared by the
-Playwright setup project.
+The shared custom fixtures in `tests/fixtures/fixtures.ts` provide one
+`pomManager` per authenticated UI test; it is built with `loggedInPage`, which
+navigates to the inventory using the saved authentication state. Tests that
+start signed out should create only the page objects they need with Playwright's
+`page`. The same fixtures provide the database and API managers. Authentication
+state is prepared by the Playwright setup project.
 
 ## Database-backed tests
 

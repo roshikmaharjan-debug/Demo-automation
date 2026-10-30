@@ -1,4 +1,5 @@
-import { expect, test } from "../fixtures/fixtures";
+import { expect, test } from "./fixtures/fixtures";
+import LoginPage from "./pages/login.page";
 
 test.describe("Login audit persistence tests", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
@@ -11,11 +12,7 @@ test.describe("Login audit persistence tests", () => {
     db.userRepository.clearLoginResults();
   });
 
-  test("persists and reads a login audit record", async ({
-    page,
-    loginPage,
-    db,
-  }) => {
+  test("persists and reads a login audit record", async ({ page, db }) => {
     const user = db.userRepository.findByUsername("standard_user");
     if (!user) {
       throw new Error(
@@ -23,6 +20,8 @@ test.describe("Login audit persistence tests", () => {
       );
     }
 
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
     await loginPage.login(user.username, user.password);
     await expect(page).toHaveURL(/.*inventory.html/);
 

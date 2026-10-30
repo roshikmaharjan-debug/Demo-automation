@@ -10,7 +10,7 @@ context; they do not launch a browser.
 booking.spec.ts
     |
     v
-api fixture in fixtures/fixtures.ts
+api fixture in tests/fixtures/fixtures.ts
     |
     v
 ApiManager
@@ -195,7 +195,7 @@ workflow environment variables instead.
 
 ## Supporting files
 
-### `fixtures/fixtures.ts`
+### `tests/fixtures/fixtures.ts`
 
 Extends Playwright's shared test fixture type with `api: ApiManager`. When a
 test requests `api`, the fixture creates an `ApiManager` and yields it to the

@@ -1,9 +1,9 @@
-import { expect, test } from "../fixtures/fixtures.ts";
+import { expect, test } from "./fixtures/fixtures";
 
 test.describe("Cart and checkout", () => {
-  test("adds two items to the cart", async ({ page, inventoryPage }) => {
-    await inventoryPage.addItemToCart("Sauce Labs Backpack");
-    await inventoryPage.addItemToCart("Sauce Labs Bike Light");
+  test("adds two items to the cart", async ({ page, pomManager }) => {
+    await pomManager.inventoryPage.addItemToCart("Sauce Labs Backpack");
+    await pomManager.inventoryPage.addItemToCart("Sauce Labs Bike Light");
     await expect(page.locator('[data-test="shopping-cart-badge"]')).toHaveText(
       "2",
     );
@@ -11,13 +11,12 @@ test.describe("Cart and checkout", () => {
 
   test("completes an order and shows confirmation", async ({
     page,
-    cartCheckoutPage,
-    inventoryPage,
+    pomManager,
   }) => {
-    await inventoryPage.addItemToCart("Sauce Labs Backpack");
-    await inventoryPage.goToCart();
-    await cartCheckoutPage.startCheckout();
-    await cartCheckoutPage.completeCustomerInformation(
+    await pomManager.inventoryPage.addItemToCart("Sauce Labs Backpack");
+    await pomManager.inventoryPage.goToCart();
+    await pomManager.cartCheckoutPage.startCheckout();
+    await pomManager.cartCheckoutPage.completeCustomerInformation(
       "Roshik",
       "Maharjan",
       "44600",
@@ -25,7 +24,7 @@ test.describe("Cart and checkout", () => {
 
     await expect(page).toHaveURL(/checkout-step-two.html/);
     await expect(page.locator('[data-test="total-label"]')).toBeVisible();
-    await cartCheckoutPage.finishCheckout();
+    await pomManager.cartCheckoutPage.finishCheckout();
 
     await expect(page.getByText("Thank you for your order!")).toBeVisible();
   });

@@ -1,10 +1,10 @@
-import { expect, test } from "../fixtures/fixtures.ts";
+import { expect, test } from "./fixtures/fixtures";
 
 test.describe("Inventory", () => {
   test("displays six items sorted by price from low to high", async ({
-    page,
-    inventoryPage,
+    pomManager,
   }) => {
+    const inventoryPage = pomManager.inventoryPage;
     const items = inventoryPage.itemsLocator;
     await expect(items).toHaveCount(6);
 
@@ -15,8 +15,9 @@ test.describe("Inventory", () => {
 
   test("opens an item and returns to the inventory", async ({
     page,
-    inventoryPage,
+    pomManager,
   }) => {
+    const inventoryPage = pomManager.inventoryPage;
     await inventoryPage.openItem("Sauce Labs Backpack");
     await expect(page).toHaveURL(/.*inventory-item\.html/);
     await expect(page.locator(".inventory_details_name")).toHaveText(
