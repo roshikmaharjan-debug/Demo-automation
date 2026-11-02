@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures/fixtures";
-import LoginPage from "./pages/login.page";
+import { expect, test } from "../fixtures/fixtures";
+import LoginPage from "../pages/login.page";
 
 test.describe("Login audit persistence tests", () => {
   test.use({ storageState: { cookies: [], origins: [] } });

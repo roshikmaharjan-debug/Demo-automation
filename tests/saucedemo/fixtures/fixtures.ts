@@ -1,7 +1,7 @@
 import { test as base, type Page } from "@playwright/test";
-import { ApiManager } from "../api/apiManager";
-import { DbConnection } from "../db/dbConnection";
-import { DbManager } from "../db/dbManager";
+import { ApiManager } from "../../api/apiManager";
+import { DbConnection } from "../../db/dbConnection";
+import { DbManager } from "../../db/dbManager";
 import { POMManager } from "../pages/POMManager";
 
 type AppFixtures = {

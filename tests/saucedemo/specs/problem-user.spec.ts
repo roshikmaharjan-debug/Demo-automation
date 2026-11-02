@@ -1,7 +1,7 @@
-import { expect, test } from "./fixtures/fixtures";
-import CartCheckoutPage from "./pages/cart-checkout.page";
-import InventoryPage from "./pages/inventory.page";
-import LoginPage from "./pages/login.page";
+import { expect, test } from "../fixtures/fixtures";
+import CartCheckoutPage from "../pages/cart-checkout.page";
+import InventoryPage from "../pages/inventory.page";
+import LoginPage from "../pages/login.page";
 
 test.describe("Problem user", () => {
   test.use({ storageState: { cookies: [], origins: [] } });

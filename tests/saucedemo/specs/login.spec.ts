@@ -1,7 +1,7 @@
-import { expect, test } from "./fixtures/fixtures";
-import { DbConnection } from "./db/dbConnection";
-import { DbManager } from "./db/dbManager";
-import LoginPage from "./pages/login.page";
+import { expect, test } from "../fixtures/fixtures";
+import { DbConnection } from "../../db/dbConnection";
+import { DbManager } from "../../db/dbManager";
+import LoginPage from "../pages/login.page";
 
 const users = (() => {
   const db = new DbManager();

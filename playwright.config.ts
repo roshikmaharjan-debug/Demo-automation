@@ -36,23 +36,47 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    /* ---------- SauceDemo (tests/saucedemo) ---------- */
     {
-      name: "setup",
-      testMatch: /.*\.setup\.ts/,
+      name: "saucedemo-setup",
+      testDir: "./tests/saucedemo",
+      testMatch: /auth\.setup\.ts/,
+      use: { baseURL: "https://www.saucedemo.com/" },
     },
+    {
+      name: "saucedemo",
+      testDir: "./tests/saucedemo/specs",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "https://www.saucedemo.com/",
+        storageState: "playwright/.auth/user.json",
+      },
+      dependencies: ["saucedemo-setup"],
+    },
+
+    /* ---------- Restful Booker API (tests/api) ---------- */
     {
       // API tests need no browser and no logged-in UI session.
       name: "api",
-      testMatch: /tests[\\/]api[\\/].*\.spec\.ts/,
+      testDir: "./tests/api",
+      testMatch: /.*\.spec\.ts/,
     },
+
+    /* ---------- evaire / Eclat login (tests/evaire) ---------- */
     {
-      name: "chromium",
-      testIgnore: /tests[\\/]api[\\/]/,
+      name: "evaire",
+      testDir: "./tests/evaire/specs",
+      // One QA account and one active session per account, so run one at a time.
+      workers: 1,
+      fullyParallel: false,
+      timeout: 180_000,
       use: {
         ...devices["Desktop Chrome"],
-        storageState: "playwright/.auth/user.json",
+        baseURL: process.env.EVAIRE_BASE_URL || "https://login.qa.evaire.ai",
+        storageState: { cookies: [], origins: [] },
+        trace: "retain-on-failure",
+        screenshot: "only-on-failure",
       },
-      dependencies: ["setup"],
     },
 
     // {

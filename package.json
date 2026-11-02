@@ -7,7 +7,10 @@
     "test": "playwright test",
     "seed": "tsx scripts/seed-db.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:evaire": "playwright test --project=evaire",
+    "test:saucedemo": "playwright test --project=saucedemo",
+    "test:api": "playwright test --project=api"
   },
   "keywords": [],
   "author": "",

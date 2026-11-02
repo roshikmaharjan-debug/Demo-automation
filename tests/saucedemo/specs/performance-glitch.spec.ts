@@ -1,6 +1,6 @@
-import { expect, test } from "./fixtures/fixtures";
-import InventoryPage from "./pages/inventory.page";
-import LoginPage from "./pages/login.page";
+import { expect, test } from "../fixtures/fixtures";
+import InventoryPage from "../pages/inventory.page";
+import LoginPage from "../pages/login.page";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 

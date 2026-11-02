@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures/fixtures";
+import { expect, test } from "../fixtures/fixtures";
 test.describe("Navigation", () => {
   test("logs out", async ({ page, pomManager }) => {
     await pomManager.sideMenuPage.logout();

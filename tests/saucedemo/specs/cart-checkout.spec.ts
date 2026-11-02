@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures/fixtures";
+import { expect, test } from "../fixtures/fixtures";
 
 test.describe("Cart and checkout", () => {
   test("adds two items to the cart", async ({ page, pomManager }) => {

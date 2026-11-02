@@ -32,10 +32,18 @@ Run every test:
 npm test
 ```
 
+Run one suite:
+
+```bash
+npm run test:saucedemo   # SauceDemo UI tests
+npm run test:api         # Restful Booker API tests
+npm run test:evaire      # evaire / Eclat login tests (see docs/evaire-login-automation.md)
+```
+
 Run a particular test file:
 
 ```bash
-npx playwright test tests/login.spec.ts
+npx playwright test tests/saucedemo/specs/login.spec.ts
 ```
 
 Run tests in headed mode:
@@ -63,7 +71,7 @@ npx playwright show-report
 ├── scripts/
 │   └── seed-db.ts
 ├── tests/
-│   ├── api/
+│   ├── api/                      # Restful Booker API tests
 │   │   ├── clients/bookingClient.ts
 │   │   ├── models/booking.ts
 │   │   ├── apiConfig.ts
@@ -71,37 +79,54 @@ npx playwright show-report
 │   │   ├── authSession.ts
 │   │   ├── booking.spec.ts
 │   │   └── httpClient.ts
-│   ├── db/
-│   ├── fixtures/
-│   │   └── fixtures.ts
-│   ├── pages/
-│   │   ├── cart-checkout.page.ts
-│   │   ├── inventory.page.ts
-│   │   ├── login.page.ts
-│   │   ├── POMManager.ts
-│   │   └── side-menu.page.ts
-│   ├── auth.setup.ts
-│   ├── cart-checkout.spec.ts
-│   ├── global-setup.ts
-│   ├── inventory.spec.ts
-│   ├── login-audit.spec.ts
-│   ├── login.spec.ts
-│   ├── navigation.spec.ts
-│   ├── performance-glitch.spec.ts
-│   ├── problem-user.spec.ts
-│   └── data/
+│   ├── db/                       # SQLite layer used by SauceDemo tests
+│   ├── data/                     # test-data.db
+│   ├── saucedemo/                # SauceDemo UI tests
+│   │   ├── fixtures/fixtures.ts
+│   │   ├── pages/
+│   │   │   ├── cart-checkout.page.ts
+│   │   │   ├── inventory.page.ts
+│   │   │   ├── login.page.ts
+│   │   │   ├── POMManager.ts
+│   │   │   └── side-menu.page.ts
+│   │   ├── specs/
+│   │   │   ├── cart-checkout.spec.ts
+│   │   │   ├── inventory.spec.ts
+│   │   │   ├── login-audit.spec.ts
+│   │   │   ├── login.spec.ts
+│   │   │   ├── navigation.spec.ts
+│   │   │   ├── performance-glitch.spec.ts
+│   │   │   └── problem-user.spec.ts
+│   │   └── auth.setup.ts
+│   ├── evaire/                   # evaire / Eclat login tests
+│   │   ├── config/evaireConfig.ts
+│   │   ├── data/userCredentials.json
+│   │   ├── fixtures/evaire.fixtures.ts
+│   │   ├── pages/
+│   │   │   ├── forgot-password.page.ts
+│   │   │   ├── home.page.ts
+│   │   │   ├── login.page.ts
+│   │   │   └── otp.page.ts
+│   │   └── specs/
+│   │       ├── forgot-password.spec.ts
+│   │       ├── lockout.spec.ts
+│   │       ├── login-form.spec.ts
+│   │       ├── login.spec.ts
+│   │       ├── otp.spec.ts
+│   │       └── session.spec.ts
+│   └── global-setup.ts
 ├── playwright.config.ts
 └── package.json
 ```
 
-### Page objects
+### SauceDemo page objects (`tests/saucedemo/pages`)
 
 - `login.page.ts` — opens the login page and submits credentials.
 - `inventory.page.ts` — selects products, sorts prices, and navigates to the cart.
 - `cart-checkout.page.ts` — completes the checkout flow.
 - `side-menu.page.ts` — handles logout, the dynamic catalog spinner, and About navigation.
 
-### Test files
+### SauceDemo test files (`tests/saucedemo/specs`)
 
 - `login.spec.ts` — successful login, incorrect password, and locked-out user.
 - `inventory.spec.ts` — inventory count, price sorting, and product details.
@@ -112,16 +137,8 @@ npx playwright show-report
 - `login-audit.spec.ts` — login audit persistence against the local SQLite database.
 - `api/booking.spec.ts` — Restful Booker booking lifecycle and update-without-token tests. See [docs/api-layers.md](./docs/api-layers.md).
 
-Playwright runs the `setup` project before Chromium tests. The
-`tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
-browser storage state under `playwright/.auth/`.
-
-Playwright runs the `setup` project before Chromium tests. The
-`tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
-browser storage state under `playwright/.auth/`.
-
-Playwright runs the `setup` project before Chromium tests. The
-`tests/auth.setup.ts` setup test signs in as `standard_user` and saves the
+Playwright runs the `saucedemo-setup` project before the `saucedemo` tests. The
+`tests/saucedemo/auth.setup.ts` setup test signs in as `standard_user` and saves the
 browser storage state under `playwright/.auth/`.
 
 ## Example: page object and test
@@ -129,7 +146,7 @@ browser storage state under `playwright/.auth/`.
 The page object contains reusable page interactions:
 
 ```ts
-// tests/pages/login.page.ts
+// tests/saucedemo/pages/login.page.ts
 import { Locator, Page } from "@playwright/test";
 
 class LoginPage {
@@ -163,9 +180,9 @@ A test creates the page object with Playwright's `page` fixture, then asserts
 the expected result:
 
 ```ts
-// tests/login.spec.ts
+// tests/saucedemo/specs/login.spec.ts
 import { expect, test } from "@playwright/test";
-import LoginPage from "./pages/login.page";
+import LoginPage from "../pages/login.page";
 
 test("logs in successfully", async ({ page }) => {
   const loginPage = new LoginPage(page);
@@ -181,7 +198,7 @@ resolves to the Sauce Demo home page.
 
 ## Fixtures
 
-The shared custom fixtures in `tests/fixtures/fixtures.ts` provide one
+The shared custom fixtures in `tests/saucedemo/fixtures/fixtures.ts` provide one
 `pomManager` per authenticated UI test; it is built with `loggedInPage`, which
 navigates to the inventory using the saved authentication state. Tests that
 start signed out should create only the page objects they need with Playwright's
