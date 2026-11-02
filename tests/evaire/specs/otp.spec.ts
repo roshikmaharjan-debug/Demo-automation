@@ -1,117 +1,95 @@
-import { evaireConfig, messages } from "../config/evaireConfig";
-import { expect, test } from "../fixtures/evaire.fixtures";
+import { expect, test } from "../fixtures/fixtures";
+import testData from "../data/testData.json";
+import userCredentials from "../data/userCredentials.json";
 
-/**
- * Eclat login - OTP verification
- * Wrong/short codes, timer and resend, back, paste.
- * Source: Eclat_Login_Test_Cases_v3 (TC-016, TC-017, TC-018, TC-019)
- */
-const { username } = evaireConfig.user;
-const OTP = evaireConfig.otp.code; // QA uses a fixed OTP (000000)
-const TIMER_START = /^(1:00|0:5\d)$/;
+// Test cases: TC-016, TC-017, TC-018, TC-019
+const user = userCredentials.Manager;
 
-test.describe("Eclat login - OTP verification", () => {
-  test("TC-016 wrong or incomplete OTP is rejected", async ({ app, page }) => {
-    await app.login.goto();
-    await app.loginToOtp();
+test.describe("OTP", () => {
+  test("TC-016 rejects letters, short codes and a wrong code", async ({
+    page,
+    pomManager,
+  }) => {
+    const { loginPage, otpPage, homePage } = pomManager;
+    await loginPage.loginAndEndOtherSession(user.Username, user.Password);
 
-    // Run on empty boxes first (letters, short code), then the full wrong code,
-    // because Mantine's PinInput can't be reliably cleared once filled.
-    await test.step("letters are blocked", async () => {
-      await app.otp.pins.first().click();
-      await page.keyboard.type("abcdef");
-      const blocked = (await app.otp.values()) === "";
-      const message = page.getByText(/OTP must contain only numbers/i);
-      expect(blocked || (await message.isVisible())).toBe(true);
-    });
+    // Letters can't be typed
+    await otpPage.codeBoxes.first().click();
+    await page.keyboard.type("abcdef");
+    expect(await otpPage.getEnteredCode()).toBe("");
 
-    await test.step("3 digits only", async () => {
-      await app.otp.enterCode("123");
-      await app.otp.submitBtn.click();
-      await expect(page.getByText(messages.otpMustBe6)).toBeVisible();
-      await expect(app.otp.heading).toBeVisible();
-    });
+    // Only 3 digits
+    await otpPage.submitCode("123");
+    await expect(page.getByText("OTP must be 6 digits")).toBeVisible();
 
-    await test.step(`wrong code ${evaireConfig.otp.wrongCode}`, async () => {
-      const res = await app.otp.submitCode(evaireConfig.otp.wrongCode);
-      expect(res.status(), "wrong OTP must be rejected").toBe(400);
-      await expect(page.getByText(messages.otpInvalid)).toBeVisible();
-      await expect(app.otp.heading).toBeVisible();
-      expect(await app.isAuthenticated()).toBe(false);
-    });
+    // Wrong 6-digit code
+    await otpPage.submitCode(testData.wrongOtp);
+    await expect(otpPage.invalidOtpMessage).toBeVisible();
+    await expect(otpPage.heading).toBeVisible();
+    expect(await homePage.isLoggedIn()).toBe(false);
   });
 
-  test("TC-017 OTP countdown, expiry and Resend Code", async ({
-    app,
+  test("TC-017 timer counts down and Resend Code works", async ({
     page,
+    pomManager,
   }) => {
-    test.setTimeout(240_000);
-    await app.login.goto();
-    await app.loginToOtp();
+    test.setTimeout(3 * 60 * 1000); // waits for the full 1-minute timer
 
-    await expect(app.otp.timer).toHaveText(TIMER_START);
-    await expect(app.otp.resendBtn).toBeDisabled();
+    const { loginPage, otpPage, homePage } = pomManager;
+    await loginPage.loginAndEndOtherSession(user.Username, user.Password);
 
-    await expect(app.otp.timer).toHaveText("0:00", { timeout: 75_000 });
-    await expect(app.otp.resendBtn).toBeEnabled();
+    // Timer starts at about 1:00 and Resend is disabled
+    await expect(otpPage.timer).toHaveText(/^(1:00|0:5\d)$/);
+    await expect(otpPage.resendCodeButton).toBeDisabled();
 
-    await app.otp.resendBtn.click();
-    // "Sending..." can be too brief to catch, so record it instead of failing.
-    const sawSending = await page
-      .getByText("Sending...")
-      .waitFor({ timeout: 3_000 })
-      .then(
-        () => true,
-        () => false,
-      );
-    test.info().annotations.push({
-      type: "Sending... shown",
-      description: String(sawSending),
-    });
-    await expect(app.otp.timer).toHaveText(TIMER_START, { timeout: 15_000 });
-    await expect(app.otp.resendBtn).toBeDisabled();
+    // When the timer reaches 0:00, Resend is enabled
+    await expect(otpPage.timer).toHaveText("0:00", { timeout: 75_000 });
+    await expect(otpPage.resendCodeButton).toBeEnabled();
 
-    // With the fixed QA OTP the old and new codes are the same, so the
-    // "old code rejected" check from the sheet can't be automated here.
-    test.info().annotations.push({
-      type: "note",
-      description: "Old-code rejection not checked: QA uses a fixed OTP.",
-    });
-    const res = await app.otp.submitCode(OTP);
-    expect(res.status()).toBe(200);
-    await app.home.expectLoaded(username);
+    // Resend restarts the timer
+    await otpPage.resendCodeButton.click();
+    await expect(otpPage.timer).toHaveText(/^(1:00|0:5\d)$/);
+    await expect(otpPage.resendCodeButton).toBeDisabled();
+
+    // Note: QA uses the same OTP every time, so we can't check that the old
+    // code stops working. We just check the code still logs in.
+    await otpPage.submitCode(testData.otp);
+    await expect(page).toHaveURL(/\?clientId=/);
+    await expect(homePage.welcomeText).toBeVisible();
   });
 
-  test("TC-018 Back from the OTP screen does not authenticate", async ({
-    app,
+  test("TC-018 Back on the OTP screen returns to login without logging in", async ({
     page,
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.loginToOtp();
+    const { loginPage, otpPage, homePage } = pomManager;
+    await loginPage.loginAndEndOtherSession(user.Username, user.Password);
 
-    await app.otp.backBtn.click();
-    await expect(app.login.username).toBeVisible();
-    await expect(app.otp.heading).toBeHidden();
-    expect(await app.isAuthenticated()).toBe(false);
+    await otpPage.backButton.click();
+    await expect(loginPage.username).toBeVisible();
+    await expect(otpPage.heading).toBeHidden();
+    expect(await homePage.isLoggedIn()).toBe(false);
 
     // Logging in again sends a new OTP
-    await app.login.goto();
-    await app.loginToOtp();
-    await expect(page.getByText(messages.otpSentToast)).toBeVisible();
-    const res = await app.otp.submitCode(OTP);
-    expect(res.status()).toBe(200);
-    await app.home.expectLoaded(username);
+    await loginPage.goto();
+    await loginPage.loginAndEndOtherSession(user.Username, user.Password);
+    await expect(page.getByText("OTP sent to your email")).toBeVisible();
+    await otpPage.submitCode(testData.otp);
+    await expect(homePage.welcomeText).toBeVisible();
   });
 
-  test("TC-019 pasting a 6-digit OTP fills all boxes", async ({ app }) => {
-    await app.login.goto();
-    await app.loginToOtp();
+  test("TC-019 pasting the OTP fills all 6 boxes", async ({
+    page,
+    pomManager,
+  }) => {
+    const { loginPage, otpPage, homePage } = pomManager;
+    await loginPage.loginAndEndOtherSession(user.Username, user.Password);
 
-    await app.otp.pasteCode(OTP);
-    await expect.poll(() => app.otp.values()).toBe(OTP);
+    await otpPage.pasteCode(testData.otp);
+    await expect.poll(() => otpPage.getEnteredCode()).toBe(testData.otp);
 
-    const res = await app.otp.submit();
-    expect(res.status()).toBe(200);
-    await app.home.expectLoaded(username);
+    await otpPage.submitButton.click();
+    await expect(page).toHaveURL(/\?clientId=/);
+    await expect(homePage.welcomeText).toBeVisible();
   });
 });

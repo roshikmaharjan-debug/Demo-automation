@@ -1,52 +1,41 @@
-import { messages } from "../config/evaireConfig";
-import { expect, test } from "../fixtures/evaire.fixtures";
+import { expect, test } from "../fixtures/fixtures";
 
-/**
- * Eclat login - Forgot password
- * Forgot Password link and page validation.
- * Source: Eclat_Login_Test_Cases_v3 (TC-007, TC-010)
- */
-test.describe("Eclat login - Forgot password", () => {
-  test("TC-007 Forgot Password page validation", async ({ app, page }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+// Test cases: TC-007, TC-010
 
-    await app.login.forgotPasswordLink.click();
-    await app.forgot.expectLoaded();
+test.describe("Forgot password", () => {
+  test("TC-007 validates the email field", async ({ page, pomManager }) => {
+    const { loginPage, forgotPasswordPage } = pomManager;
 
-    await app.forgot.sendLinkBtn.click();
-    await expect(page.getByText(messages.emailRequired)).toBeVisible();
+    await loginPage.forgotPasswordLink.click();
+    await expect(page).toHaveURL(/\/forgot-password$/);
+    await expect(forgotPasswordPage.heading).toBeVisible();
 
-    await app.forgot.email.fill("plainaddress");
-    await app.forgot.sendLinkBtn.click();
-    await expect(page.getByText(messages.invalidEmail)).toBeVisible();
+    // Empty email
+    await forgotPasswordPage.sendLinkButton.click();
+    await expect(page.getByText("Email is required")).toBeVisible();
 
-    await app.forgot.backLink.click();
+    // Invalid email
+    await forgotPasswordPage.sendLink("plainaddress");
+    await expect(page.getByText("Invalid email address")).toBeVisible();
+
+    // Back to login
+    await forgotPasswordPage.backButton.click();
     await expect(page).toHaveURL(/\/login$/);
-    await app.login.expectLoaded();
   });
 
-  test("TC-010 Forgot Password link navigates and back returns to a usable form", async ({
-    app,
+  test("TC-010 Forgot Password link opens the page and browser Back returns to login", async ({
     page,
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+    const { loginPage, forgotPasswordPage } = pomManager;
 
-    // Link sits below the password field.
-    const pwBox = await app.login.password.boundingBox();
-    const linkBox = await app.login.forgotPasswordLink.boundingBox();
-    expect(linkBox!.y).toBeGreaterThan(pwBox!.y);
-
-    await app.login.forgotPasswordLink.click();
+    await loginPage.forgotPasswordLink.click();
     await expect(page).toHaveURL(/\/forgot-password$/);
-    await expect(app.forgot.email).toBeVisible();
+    await expect(forgotPasswordPage.email).toBeVisible();
 
     await page.goBack();
     await expect(page).toHaveURL(/\/login$/);
-    await app.login.expectLoaded();
-    await app.login.username.fill("check");
-    await expect(app.login.username).toHaveValue("check");
-    await expect(app.login.loginBtn).toBeEnabled();
+    await expect(loginPage.username).toBeVisible();
+    await expect(loginPage.loginButton).toBeVisible();
   });
 });

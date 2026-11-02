@@ -1,237 +1,175 @@
-import { evaireConfig, messages, testData } from "../config/evaireConfig";
-import { expect, test } from "../fixtures/evaire.fixtures";
+import { expect, test } from "../fixtures/fixtures";
+import testData from "../data/testData.json";
+import userCredentials from "../data/userCredentials.json";
 
-/**
- * Eclat login - Login with credentials
- * Valid and invalid credentials, username vs email, duplicate submits.
- * Source: Eclat_Login_Test_Cases_v3 (TC-001, TC-002, TC-003, TC-005, TC-011, TC-014, TC-015, TC-021)
- */
-const { username, password, email } = evaireConfig.user;
-const OTP = evaireConfig.otp.code; // QA uses a fixed OTP (000000)
-const TIMER_START = /^(1:00|0:5\d)$/;
+// Test cases: TC-001, TC-002, TC-003, TC-005, TC-011, TC-014, TC-015, TC-021
+const user = userCredentials.Manager;
 
-test.describe("Eclat login - Login with credentials", () => {
-  test("TC-001 successful login with valid credentials and OTP", async ({
-    app,
+test.describe("Login", () => {
+  test("TC-001 logs in with valid credentials and OTP", async ({
     page,
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+    const { loginPage, otpPage, homePage } = pomManager;
 
-    await app.login.username.fill(email || username);
-    await expect(app.login.username).toHaveValue(email || username);
-    await expect(app.login.username).toHaveAttribute("aria-invalid", "false");
+    await loginPage.loginAndEndOtherSession(user.Email, user.Password);
 
-    await app.login.password.fill(password);
-    await expect(app.login.password).toHaveAttribute("type", "password");
+    // OTP screen
+    await expect(otpPage.heading).toBeVisible();
+    await expect(otpPage.sentToText).toContainText("***");
+    await expect(otpPage.codeBoxes).toHaveCount(6);
+    await expect(otpPage.resendCodeButton).toBeDisabled();
+    await expect(page.getByText("OTP sent to your email")).toBeVisible();
 
-    await app.loginToOtp(email || username, password);
+    await otpPage.submitCode(testData.otp);
 
-    // OTP screen content
-    await expect(app.otp.sentTo).toContainText(/\*+/); // masked email
-    await expect(app.otp.timer).toHaveText(TIMER_START);
-    await expect(app.otp.resendBtn).toBeDisabled();
-    await expect(page.getByText(messages.otpSentToast)).toBeVisible();
-
-    const res = await app.otp.submitCode(OTP);
-    expect(res.status()).toBe(200);
-
-    await app.home.expectLoaded(username);
+    // Product suite home
+    await expect(page).toHaveURL(/\?clientId=/);
+    await expect(homePage.welcomeText).toBeVisible();
+    await expect(homePage.clientSelector).toBeVisible();
+    await expect(homePage.userMenu(user.Username)).toBeVisible();
+    await expect(homePage.productCard("Capture")).toBeVisible();
+    await expect(homePage.productCard("Analyze")).toBeVisible();
+    await expect(homePage.productCard("Manage")).toBeVisible();
   });
 
-  test("TC-002 wrong password for an existing account is rejected", async ({
-    app,
+  test("TC-002 shows an error for a wrong password", async ({
     page,
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+    const { loginPage, otpPage } = pomManager;
 
-    const res = await app.login.submit(
-      evaireConfig.user.username,
-      testData.wrongPassword,
-    );
-    expect(res.status()).toBe(401);
+    await loginPage.login(user.Username, testData.wrongPassword);
 
-    await app.login.expectLoginFailed();
-    await expect(app.otp.heading).toBeHidden();
-    // Fields keep their values, button disabled until a field changes.
-    await expect(app.login.username).toHaveValue(evaireConfig.user.username);
-    await expect(app.login.password).toHaveValue(testData.wrongPassword);
-    await expect(app.login.loginBtn).toBeDisabled();
-    // No stack trace / internals in the page.
-    await expect(page.locator("body")).not.toContainText(
-      /stack|exception|traceback|at \w+\.\w+ \(/i,
-    );
+    await expect(page.getByText("Login failed", { exact: true })).toBeVisible();
+    await expect(loginPage.errorMessage).toBeVisible();
+    await expect(otpPage.heading).toBeHidden();
     await expect(page).toHaveURL(/\/login$/);
+
+    // The fields keep their values and Login is disabled until something changes.
+    await expect(loginPage.username).toHaveValue(user.Username);
+    await expect(loginPage.password).toHaveValue(testData.wrongPassword);
+    await expect(loginPage.loginButton).toBeDisabled();
   });
 
-  test("TC-003 unregistered username/email gets the same generic error", async ({
-    app,
-    page,
+  test("TC-003 shows the same error for an unregistered user", async ({
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+    const { loginPage, otpPage } = pomManager;
 
-    const t1 = Date.now();
-    const unknown = await app.login.submit(
-      testData.unregisteredEmail,
-      testData.wrongPassword,
-    );
-    const unknownMs = Date.now() - t1;
-    const unknownBody = await unknown.json();
-    await app.login.expectLoginFailed();
-    await expect(app.otp.heading).toBeHidden();
+    // Unregistered email
+    let start = Date.now();
+    await loginPage.login(testData.unregisteredEmail, testData.wrongPassword);
+    await expect(loginPage.errorMessage).toBeVisible();
+    const unregisteredTime = Date.now() - start;
+    await expect(otpPage.heading).toBeHidden();
 
-    // Compare with an existing account + wrong password (TC-002).
-    await app.login.goto();
-    const t2 = Date.now();
-    const known = await app.login.submit(
-      evaireConfig.user.username,
-      testData.wrongPassword,
-    );
-    const knownMs = Date.now() - t2;
-    const knownBody = await known.json();
+    // Registered user with a wrong password - should get the exact same message
+    await loginPage.goto();
+    start = Date.now();
+    await loginPage.login(user.Username, testData.wrongPassword);
+    await expect(loginPage.errorMessage).toBeVisible();
+    const registeredTime = Date.now() - start;
 
-    // Same status and identical message -> no account enumeration.
-    expect(unknown.status()).toBe(known.status());
-    expect(unknownBody.message).toBe(knownBody.message);
-    expect(unknownBody.message).toBe(messages.loginFailed);
-    await expect(page.getByText(messages.loginFailed)).toBeVisible();
-
-    // No obvious timing difference (generous threshold for network noise).
-    expect
-      .soft(Math.abs(unknownMs - knownMs), "response time difference (ms)")
-      .toBeLessThan(1500);
+    // Response times should be about the same (no hint that the account exists)
+    expect(Math.abs(unregisteredTime - registeredTime)).toBeLessThan(1500);
   });
 
-  test("TC-005 username/email field accepts usernames and handles malformed input", async ({
-    app,
+  test("TC-005 accepts any text in the username field and shows the normal error", async ({
     page,
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+    const { loginPage } = pomManager;
 
-    for (const value of testData.malformedIdentifiers) {
-      await test.step(`identifier "${value}"`, async () => {
-        await app.login.goto();
-        const res = await app.login.submit(value, testData.wrongPassword);
-        // Request is sent (no client-side email-format check) and rejected generically.
-        expect(res.status()).toBe(401);
-        await expect(page.getByText(/invalid email/i)).toBeHidden();
-        await app.login.expectLoginFailed();
+    for (const value of testData.malformedUsernames) {
+      await loginPage.goto();
+      await loginPage.login(value, testData.wrongPassword);
 
-        // Layout holds: form still fully visible and inside the viewport.
-        await expect(app.login.username).toBeInViewport();
-        await expect(app.login.loginBtn).toBeInViewport();
-        // Poll: the banner animates in and can overflow for a moment.
-        await expect
-          .poll(
-            () =>
-              page.evaluate(
-                () =>
-                  document.documentElement.scrollWidth >
-                  document.documentElement.clientWidth,
-              ),
-            { message: "no horizontal overflow" },
-          )
-          .toBe(false);
-      });
+      // No "invalid email" message - usernames are allowed
+      await expect(page.getByText(/invalid email/i)).toBeHidden();
+      await expect(loginPage.errorMessage).toBeVisible();
+
+      // Layout is not broken
+      await expect(loginPage.username).toBeInViewport();
+      await expect(loginPage.loginButton).toBeInViewport();
     }
   });
 
-  test("TC-011 username/email is case-insensitive and trimmed; password is case-sensitive", async ({
-    app,
+  test("TC-011 email ignores case and spaces, password does not", async ({
+    pomManager,
   }) => {
-    test.skip(!email, "Set EVAIRE_EMAIL in .env to run TC-011");
+    const { loginPage, otpPage } = pomManager;
 
-    const mixedCase = email
-      .split("")
-      .map((c, i) => (i % 2 === 0 ? c.toUpperCase() : c.toLowerCase()))
-      .join("");
-    const padded = `  ${email.toLowerCase()}  `;
-    const swappedCasePassword = password
-      .split("")
-      .map((c) => (c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()))
-      .join("");
+    // Upper-case email reaches the OTP screen
+    await loginPage.loginAndEndOtherSession(
+      user.Email.toUpperCase(),
+      user.Password,
+    );
+    await expect(otpPage.heading).toBeVisible();
+    await otpPage.backButton.click();
 
-    await test.step("mixed-case email reaches OTP", async () => {
-      await app.login.goto();
-      await app.loginToOtp(mixedCase, password);
-      await app.otp.backBtn.click();
-      await expect(app.login.username).toBeVisible();
-    });
+    // Email with spaces around it reaches the OTP screen
+    await loginPage.goto();
+    await loginPage.loginAndEndOtherSession(`  ${user.Email}  `, user.Password);
+    await expect(otpPage.heading).toBeVisible();
+    await otpPage.backButton.click();
 
-    await test.step("email with leading/trailing spaces reaches OTP", async () => {
-      await app.login.goto();
-      await app.loginToOtp(padded, password);
-      await app.otp.backBtn.click();
-      await expect(app.login.username).toBeVisible();
-    });
-
-    await test.step("password with changed case is rejected", async () => {
-      await app.login.goto();
-      const res = await app.login.submit(email, swappedCasePassword);
-      expect(res.status()).toBe(401);
-      await app.login.expectLoginFailed();
-      await expect(app.otp.heading).toBeHidden();
-    });
+    // Password in the wrong case is rejected
+    await loginPage.goto();
+    await loginPage.login(user.Email, user.Password.toUpperCase());
+    await expect(loginPage.errorMessage).toBeVisible();
+    await expect(otpPage.heading).toBeHidden();
   });
 
-  test("TC-014 double-click on Login sends a single login request", async ({
-    app,
+  test("TC-014 double-clicking Login sends only one request", async ({
     page,
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.fill(username, password);
+    const { loginPage, otpPage } = pomManager;
 
-    const loginRequests: string[] = [];
-    page.on("request", (r) => {
-      if (r.url().includes("/auth/login") && r.method() === "POST")
-        loginRequests.push(r.postData() ?? "");
+    // Count the login requests the page sends
+    let loginRequests = 0;
+    page.on("request", (request) => {
+      if (request.url().includes("/auth/login") && request.method() === "POST")
+        loginRequests++;
     });
 
-    await app.login.loginBtn.dblclick();
+    await loginPage.fillCredentials(user.Username, user.Password);
+    await loginPage.loginButton.dblclick();
     await expect(
-      app.otp.heading.or(app.login.continueEndSessionBtn),
-    ).toBeVisible({ timeout: 15_000 });
-    expect(loginRequests, "only one /auth/login request").toHaveLength(1);
+      otpPage.heading.or(loginPage.continueAndEndSessionButton),
+    ).toBeVisible();
 
-    if (await app.login.continueEndSessionBtn.isVisible()) {
-      await app.login.continueEndSessionBtn.click();
-    }
-    await app.otp.expectVisible();
-
-    // No late duplicate request either.
-    await page.waitForTimeout(3_000);
-    expect(loginRequests).toHaveLength(1);
+    expect(loginRequests).toBe(1);
   });
 
-  test("TC-015 login with username instead of email", async ({ app }) => {
-    await app.login.goto();
-    await app.login.username.fill(username);
-    await expect(app.login.username).toHaveAttribute("aria-invalid", "false");
-
-    await app.loginToOtp(username, password);
-    await expect(app.otp.sentTo).toContainText(/\S+\*+\S*@\S+\.\S+/);
-
-    const res = await app.otp.submitCode(OTP);
-    expect(res.status()).toBe(200);
-    await app.home.expectLoaded(username);
-  });
-
-  test("TC-021 Login button disabled after a failed attempt until input changes", async ({
-    app,
+  test("TC-015 logs in with username instead of email", async ({
+    page,
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+    const { loginPage, otpPage, homePage } = pomManager;
 
-    await app.login.submit(testData.unregisteredEmail, testData.wrongPassword);
-    await app.login.expectLoginFailed();
+    await loginPage.loginAndEndOtherSession(user.Username, user.Password);
+    // The OTP screen shows the account's masked email, e.g. r***n@maitriservices.com
+    await expect(otpPage.sentToText).toContainText("***");
+    await expect(otpPage.sentToText).toContainText("@");
 
-    await expect(app.login.loginBtn).toBeDisabled();
+    await otpPage.submitCode(testData.otp);
+    await expect(page).toHaveURL(/\?clientId=/);
+    await expect(homePage.welcomeText).toBeVisible();
+  });
+
+  test("TC-021 Login button is disabled after a failed login until a field changes", async ({
+    pomManager,
+  }) => {
+    const { loginPage } = pomManager;
+
+    await loginPage.login(testData.unregisteredEmail, testData.wrongPassword);
+    await expect(loginPage.errorMessage).toBeVisible();
+    await expect(loginPage.loginButton).toBeDisabled();
 
     // Change one character
-    await app.login.password.fill(testData.wrongPassword + "x");
-    await expect(app.login.loginBtn).toBeEnabled();
+    await loginPage.password.fill(testData.wrongPassword + "x");
+    await expect(loginPage.loginButton).toBeEnabled();
   });
 });

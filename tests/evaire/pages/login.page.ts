@@ -1,51 +1,40 @@
-import {
-  expect,
-  type Locator,
-  type Page,
-  type Response,
-} from "@playwright/test";
-import { messages } from "../config/evaireConfig";
+import { type Locator, type Page } from "@playwright/test";
 
-/** Page object for https://login.qa.evaire.ai/login */
-export class EvaireLoginPage {
-  readonly page: Page;
-  readonly heading: Locator;
-  readonly usernameLabel: Locator;
-  readonly passwordLabel: Locator;
-  readonly username: Locator;
-  readonly password: Locator;
-  readonly passwordToggle: Locator;
-  readonly forgotPasswordLink: Locator;
-  readonly loginBtn: Locator;
-  readonly errorBanner: Locator;
-  readonly usernameError: Locator;
-  readonly passwordError: Locator;
-  readonly activeSessionTitle: Locator;
-  readonly continueEndSessionBtn: Locator;
+class LoginPage {
+  page: Page;
+  username: Locator;
+  password: Locator;
+  showPasswordButton: Locator;
+  forgotPasswordLink: Locator;
+  loginButton: Locator;
+  errorMessage: Locator;
+  usernameRequiredError: Locator;
+  passwordRequiredError: Locator;
+  activeSessionMessage: Locator;
+  continueAndEndSessionButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.heading = page.getByText("Login", { exact: true }).first();
-    this.usernameLabel = page.locator("label", { hasText: "Username/Email" });
-    this.passwordLabel = page.locator("label", { hasText: "Password" });
     this.username = page.getByPlaceholder("Enter your username or email");
     this.password = page.getByPlaceholder("Enter your password");
-    // Eye icon: aria-hidden + tabindex=-1, so it has no accessible role.
-    this.passwordToggle = page.locator(
+    // The eye icon has no name, so we find it next to the password field.
+    this.showPasswordButton = page.locator(
       '[data-with-right-section="true"] button[tabindex="-1"]',
     );
     this.forgotPasswordLink = page.getByRole("link", {
       name: "Forgot Password?",
     });
-    this.loginBtn = page.getByRole("button", { name: "Login", exact: true });
-    this.errorBanner = page
-      .getByText(messages.loginFailedTitle, { exact: true })
-      .locator("..");
-    this.usernameError = page.getByText(messages.usernameRequired);
-    this.passwordError = page.getByText(messages.passwordRequired);
-    this.activeSessionTitle = page.getByText(messages.activeSession);
-    this.continueEndSessionBtn = page.getByRole("button", {
-      name: messages.continueEndSession,
+    this.loginButton = page.getByRole("button", { name: "Login", exact: true });
+    this.errorMessage = page.getByText(
+      "The username/email or password you entered is incorrect. Please try again",
+    );
+    this.usernameRequiredError = page.getByText(
+      "Username or email is required",
+    );
+    this.passwordRequiredError = page.getByText("Password is required");
+    this.activeSessionMessage = page.getByText("Active session detected");
+    this.continueAndEndSessionButton = page.getByRole("button", {
+      name: "Continue & End Other Session",
     });
   }
 
@@ -53,43 +42,30 @@ export class EvaireLoginPage {
     await this.page.goto("/login");
   }
 
-  async expectLoaded() {
-    await expect(this.page).toHaveTitle(messages.pageTitle);
-    await expect(this.username).toBeVisible();
-    await expect(this.password).toBeVisible();
-    await expect(this.usernameLabel).toContainText("Username/Email *");
-    await expect(this.passwordLabel).toContainText("Password *");
-    await expect(this.forgotPasswordLink).toBeVisible();
-    await expect(this.loginBtn).toBeVisible();
-    await expect(this.page.getByAltText("Evaire Logo")).toBeVisible();
-  }
-
-  async fill(identifier: string, password: string) {
-    await this.username.fill(identifier);
+  async fillCredentials(username: string, password: string) {
+    await this.username.fill(username);
     await this.password.fill(password);
   }
 
-  /** Fill and click Login, returning the /auth/login response. */
-  async submit(identifier: string, password: string): Promise<Response> {
-    await this.fill(identifier, password);
-    return this.clickLogin();
+  async login(username: string, password: string) {
+    await this.fillCredentials(username, password);
+    await this.loginButton.click();
   }
 
-  async clickLogin(): Promise<Response> {
-    const responsePromise = this.page.waitForResponse(
-      (r) => r.url().includes("/auth/login") && r.request().method() === "POST",
+  // Use this when the login should reach the OTP screen.
+  // The app allows one session per account, so if the account is logged in
+  // somewhere else we click "Continue & End Other Session".
+  async loginAndEndOtherSession(username: string, password: string) {
+    await this.login(username, password);
+    const otpHeading = this.page.getByText(
+      "Please enter the verification code",
     );
-    await this.loginBtn.click();
-    return responsePromise;
-  }
-
-  async expectLoginFailed() {
-    await expect(
-      this.page.getByText(messages.loginFailedTitle, { exact: true }),
-    ).toBeVisible();
-    await expect(this.page.getByText(messages.loginFailed)).toBeVisible();
-    await expect(this.page).toHaveURL(/\/login$/);
+    await otpHeading.or(this.continueAndEndSessionButton).waitFor();
+    if (await this.continueAndEndSessionButton.isVisible()) {
+      await this.continueAndEndSessionButton.click();
+    }
+    await otpHeading.waitFor();
   }
 }
 
-export default EvaireLoginPage;
+export default LoginPage;

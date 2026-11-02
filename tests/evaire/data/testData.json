@@ -1,0 +1,13 @@
+{
+  "otp": "000000",
+  "wrongOtp": "111111",
+  "wrongPassword": "WrongPass!123",
+  "unregisteredEmail": "qa.nouser.20261030@example.com",
+  "malformedUsernames": [
+    "plainaddress",
+    "user@",
+    "@example.com",
+    "user@@example.com",
+    "user example@test.com"
+  ]
+}

@@ -72,7 +72,7 @@ export default defineConfig({
       timeout: 180_000,
       use: {
         ...devices["Desktop Chrome"],
-        baseURL: process.env.EVAIRE_BASE_URL || "https://login.qa.evaire.ai",
+        baseURL: "https://login.qa.evaire.ai",
         storageState: { cookies: [], origins: [] },
         trace: "retain-on-failure",
         screenshot: "only-on-failure",

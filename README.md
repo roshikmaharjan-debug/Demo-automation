@@ -99,14 +99,16 @@ npx playwright show-report
 │   │   │   └── problem-user.spec.ts
 │   │   └── auth.setup.ts
 │   ├── evaire/                   # evaire / Eclat login tests
-│   │   ├── config/evaireConfig.ts
-│   │   ├── data/userCredentials.json
-│   │   ├── fixtures/evaire.fixtures.ts
+│   │   ├── data/
+│   │   │   ├── testData.json
+│   │   │   └── userCredentials.json
+│   │   ├── fixtures/fixtures.ts
 │   │   ├── pages/
 │   │   │   ├── forgot-password.page.ts
 │   │   │   ├── home.page.ts
 │   │   │   ├── login.page.ts
-│   │   │   └── otp.page.ts
+│   │   │   ├── otp.page.ts
+│   │   │   └── POMManager.ts
 │   │   └── specs/
 │   │       ├── forgot-password.spec.ts
 │   │       ├── lockout.spec.ts

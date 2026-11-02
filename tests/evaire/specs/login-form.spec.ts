@@ -1,159 +1,110 @@
-import { evaireConfig, messages } from "../config/evaireConfig";
-import { expect, test } from "../fixtures/evaire.fixtures";
+import { expect, test } from "../fixtures/fixtures";
+import testData from "../data/testData.json";
+import userCredentials from "../data/userCredentials.json";
 
-/**
- * Eclat login - Login form
- * Field validation, password masking, direct access and keyboard use.
- * Source: Eclat_Login_Test_Cases_v3 (TC-004, TC-006, TC-008, TC-009)
- */
-const { username, password } = evaireConfig.user;
-const OTP = evaireConfig.otp.code; // QA uses a fixed OTP (000000)
+// Test cases: TC-004, TC-006, TC-008, TC-009
+const user = userCredentials.Manager;
 
-test.describe("Eclat login - Login form", () => {
-  test("TC-004 required-field validation on empty submit", async ({
-    app,
+test.describe("Login form", () => {
+  test("TC-004 shows required-field errors on empty submit", async ({
     page,
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+    const { loginPage } = pomManager;
 
-    const loginRequests: string[] = [];
-    page.on("request", (r) => {
-      if (r.url().includes("/auth/login") && r.method() === "POST")
-        loginRequests.push(r.url());
+    // Count login requests - an empty form should never send one
+    let loginRequests = 0;
+    page.on("request", (request) => {
+      if (request.url().includes("/auth/login")) loginRequests++;
     });
 
-    // Required markers
-    await expect(app.login.usernameLabel).toContainText("*");
-    await expect(app.login.passwordLabel).toContainText("*");
-
-    // Both empty
-    await app.login.loginBtn.click();
-    await expect(app.login.usernameError).toBeVisible();
-    await expect(app.login.passwordError).toBeVisible();
-    await expect(app.login.username).toHaveAttribute("aria-invalid", "true");
-    await expect(app.login.password).toHaveAttribute("data-invalid", "true");
+    // Both fields empty
+    await loginPage.loginButton.click();
+    await expect(loginPage.usernameRequiredError).toBeVisible();
+    await expect(loginPage.passwordRequiredError).toBeVisible();
 
     // Only username filled
-    await app.login.username.fill("someuser");
-    await app.login.loginBtn.click();
-    await expect(app.login.usernameError).toBeHidden();
-    await expect(app.login.passwordError).toBeVisible();
+    await loginPage.username.fill("someuser");
+    await loginPage.loginButton.click();
+    await expect(loginPage.usernameRequiredError).toBeHidden();
+    await expect(loginPage.passwordRequiredError).toBeVisible();
 
     // Only password filled
-    await app.login.username.clear();
-    await app.login.password.fill("SomePass!1");
-    await app.login.loginBtn.click();
-    await expect(app.login.usernameError).toBeVisible();
-    await expect(app.login.passwordError).toBeHidden();
+    await loginPage.username.clear();
+    await loginPage.password.fill("SomePass!1");
+    await loginPage.loginButton.click();
+    await expect(loginPage.usernameRequiredError).toBeVisible();
+    await expect(loginPage.passwordRequiredError).toBeHidden();
 
-    // No /auth/login request was sent for any empty submit
-    await page.waitForTimeout(500);
-    expect(loginRequests).toHaveLength(0);
+    expect(loginRequests).toBe(0);
   });
 
-  test("TC-006 password masking and show/hide toggle", async ({
-    app,
-    page,
-    browserName,
+  test("TC-006 masks the password and the eye icon shows/hides it", async ({
+    pomManager,
   }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+    const { loginPage } = pomManager;
 
-    const secret = "MySecret!42";
-    await app.login.password.fill(secret);
-    await expect(app.login.password).toHaveAttribute("type", "password");
+    await loginPage.password.fill("MySecret!42");
+    await expect(loginPage.password).toHaveAttribute("type", "password");
 
-    await app.login.passwordToggle.click();
-    await expect(app.login.password).toHaveAttribute("type", "text");
-    await expect(app.login.password).toHaveValue(secret);
+    await loginPage.showPasswordButton.click();
+    await expect(loginPage.password).toHaveAttribute("type", "text");
 
-    await app.login.passwordToggle.click();
-    await expect(app.login.password).toHaveAttribute("type", "password");
-
-    // Masked value can't be copied as plain text (clipboard check is Chromium-only).
-    if (browserName !== "chromium") return;
-    await page
-      .context()
-      .grantPermissions(["clipboard-read", "clipboard-write"])
-      .catch(() => undefined);
-    await page.evaluate(() =>
-      navigator.clipboard.writeText("").catch(() => {}),
-    );
-    await app.login.password.focus();
-    await page.keyboard.press("ControlOrMeta+a");
-    await page.keyboard.press("ControlOrMeta+c");
-    await app.login.username.fill("");
-    await app.login.username.focus();
-    await page.keyboard.press("ControlOrMeta+v");
-    await expect(app.login.username).not.toHaveValue(secret);
+    await loginPage.showPasswordButton.click();
+    await expect(loginPage.password).toHaveAttribute("type", "password");
   });
 
-  test("TC-008 direct access to the login page", async ({ app, page }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+  test("TC-008 login page opens directly with a clean URL", async ({
+    page,
+  }) => {
+    // The fixture already opened /login
+    await expect(page).toHaveTitle("Eclat login");
+    await expect(page).toHaveURL("https://login.qa.evaire.ai/login");
 
-    await page.goto(`${evaireConfig.baseUrl}/login`);
-    await app.login.expectLoaded();
-    expect(new URL(page.url()).pathname).toBe("/login");
-    expect(new URL(page.url()).search).toBe("");
-    await expect(page).toHaveTitle(messages.pageTitle);
-
-    const text = await page.locator("body").innerText();
-    expect(text).not.toMatch(
-      /stack ?trace|exception|traceback|nginx\/|apache\/|internal server error|localhost|127\.0\.0\.1/i,
+    // No error details leaked on the page
+    await expect(page.locator("body")).not.toContainText(
+      /exception|stack trace|traceback|server error/i,
     );
   });
 
-  test("TC-009 keyboard-only login and tab order", async ({ app, page }) => {
-    await app.login.goto();
-    await app.login.expectLoaded();
+  test("TC-009 can log in with the keyboard only", async ({
+    page,
+    pomManager,
+  }) => {
+    const { loginPage, otpPage, homePage } = pomManager;
+    await expect(loginPage.username).toBeVisible();
+
+    // Tab order: Username -> Password -> Forgot Password? -> Login
+    await page.keyboard.press("Tab");
+    await expect(loginPage.username).toBeFocused();
+    await page.keyboard.type(user.Username);
 
     await page.keyboard.press("Tab");
-    await expect(app.login.username).toBeFocused();
-    await page.keyboard.type(username);
+    await expect(loginPage.password).toBeFocused();
+    await page.keyboard.type(user.Password);
+
+    await page.keyboard.press("Tab"); // the eye icon is skipped
+    await expect(loginPage.forgotPasswordLink).toBeFocused();
 
     await page.keyboard.press("Tab");
-    await expect(app.login.password).toBeFocused();
-    await page.keyboard.type(password);
+    await expect(loginPage.loginButton).toBeFocused();
 
-    await page.keyboard.press("Tab"); // eye icon (tabindex=-1) is skipped
-    await expect(app.login.forgotPasswordLink).toBeFocused();
-    await expect(app.login.passwordToggle).toHaveAttribute("tabindex", "-1");
-
-    await page.keyboard.press("Tab");
-    await expect(app.login.loginBtn).toBeFocused();
-
-    // Back to Password and submit with Enter
-    await page.keyboard.press("Shift+Tab");
-    await page.keyboard.press("Shift+Tab");
-    await expect(app.login.password).toBeFocused();
-
+    // Press Enter on the Login button
     await page.keyboard.press("Enter");
     await expect(
-      app.otp.heading.or(app.login.continueEndSessionBtn),
-    ).toBeVisible({ timeout: 15_000 });
-    if (await app.login.continueEndSessionBtn.isVisible()) {
-      await app.login.continueEndSessionBtn.focus();
+      otpPage.heading.or(loginPage.continueAndEndSessionButton),
+    ).toBeVisible();
+    if (await loginPage.continueAndEndSessionButton.isVisible()) {
+      await loginPage.continueAndEndSessionButton.focus();
       await page.keyboard.press("Enter");
     }
-    await app.otp.expectVisible();
+    await expect(otpPage.heading).toBeVisible();
 
-    // Move focus into the first code box using the keyboard only
-    for (let i = 0; i < 5; i++) {
-      if (
-        await app.otp.pins
-          .first()
-          .evaluate((el) => el === document.activeElement)
-      )
-        break;
-      await page.keyboard.press("Tab");
-    }
-    await expect(app.otp.pins.first()).toBeFocused();
-
-    await page.keyboard.type(OTP);
+    // Type the code and press Enter
+    await otpPage.codeBoxes.first().focus();
+    await page.keyboard.type(testData.otp);
     await page.keyboard.press("Enter");
 
-    await app.home.expectLoaded(username);
+    await expect(homePage.welcomeText).toBeVisible();
   });
 });

@@ -1,93 +1,69 @@
-import {
-  expect,
-  type Locator,
-  type Page,
-  type Response,
-} from "@playwright/test";
-import { messages } from "../config/evaireConfig";
+import { type Locator, type Page } from "@playwright/test";
 
-/** The 6-box verification-code step shown after a successful credential check. */
-export class EvaireOtpPage {
-  readonly page: Page;
-  readonly heading: Locator;
-  readonly sentTo: Locator;
-  readonly pinGroup: Locator;
-  readonly pins: Locator;
-  readonly submitBtn: Locator;
-  readonly backBtn: Locator;
-  readonly resendBtn: Locator;
-  readonly timer: Locator;
+class OtpPage {
+  page: Page;
+  heading: Locator;
+  sentToText: Locator;
+  codeBoxes: Locator;
+  submitButton: Locator;
+  backButton: Locator;
+  resendCodeButton: Locator;
+  timer: Locator;
+  invalidOtpMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.heading = page.getByText(messages.otpHeading);
-    this.sentTo = page.getByText(messages.otpSentTo);
-    this.pinGroup = page.getByRole("group", { name: "One-time password" });
-    this.pins = this.pinGroup.getByRole("textbox");
-    this.submitBtn = page.getByRole("button", { name: "Submit" });
-    this.backBtn = page.getByRole("button", { name: "Back" });
-    this.resendBtn = page.getByRole("button", { name: /Resend Code|Sending/ });
-    this.timer = page.getByText(/^\d:\d{2}$/);
+    this.heading = page.getByText("Please enter the verification code");
+    this.sentToText = page.getByText("We've sent you the code to");
+    this.codeBoxes = page
+      .getByRole("group", { name: "One-time password" })
+      .getByRole("textbox");
+    this.submitButton = page.getByRole("button", { name: "Submit" });
+    this.backButton = page.getByRole("button", { name: "Back" });
+    this.resendCodeButton = page.getByRole("button", {
+      name: /Resend Code|Sending/,
+    });
+    this.timer = page.getByText(/^\d:\d{2}$/); // e.g. 0:59
+    this.invalidOtpMessage = page.getByText("Invalid OTP");
   }
 
-  async expectVisible() {
-    await expect(this.heading).toBeVisible({ timeout: 15_000 });
-    await expect(this.sentTo).toContainText(/\S+\*+\S*@\S+/);
-    await expect(this.pins).toHaveCount(6);
-    await expect(this.submitBtn).toBeVisible();
-    await expect(this.backBtn).toBeVisible();
-  }
-
-  /**
-   * Types the code starting at the first box. Each character is typed over a
-   * select-all, so any existing digits are overwritten (Mantine PinInput keeps
-   * the old digit otherwise). For codes shorter than 6, start from empty boxes.
-   */
+  // Types the code one digit at a time, starting in the first box.
+  // Ctrl+A before each digit replaces any digit that is already in the box.
   async enterCode(code: string) {
-    await this.pins.first().focus();
-    for (const ch of code) {
+    await this.codeBoxes.first().focus();
+    for (const digit of code) {
       await this.page.keyboard.press("ControlOrMeta+a");
-      await this.page.keyboard.type(ch);
+      await this.page.keyboard.type(digit);
     }
   }
 
-  async values(): Promise<string> {
-    return (
-      await this.pins.evaluateAll((els) =>
-        els.map((e) => (e as HTMLInputElement).value),
-      )
-    ).join("");
+  async submitCode(code: string) {
+    await this.enterCode(code);
+    await this.submitButton.click();
   }
 
-  /** Simulates the user pasting a code into the first box. */
+  // Pastes the code into the first box, like a user doing Ctrl+V.
   async pasteCode(code: string) {
-    await this.pins.first().click();
-    await this.pins.first().evaluate((el, text) => {
-      const dt = new DataTransfer();
-      dt.setData("text/plain", text);
-      el.dispatchEvent(
+    await this.codeBoxes.first().click();
+    await this.codeBoxes.first().evaluate((box, text) => {
+      const clipboard = new DataTransfer();
+      clipboard.setData("text/plain", text);
+      box.dispatchEvent(
         new ClipboardEvent("paste", {
-          clipboardData: dt,
+          clipboardData: clipboard,
           bubbles: true,
-          cancelable: true,
         }),
       );
     }, code);
   }
 
-  async submit(): Promise<Response> {
-    const responsePromise = this.page.waitForResponse(
-      (r) =>
-        r.url().includes("/auth/verify-otp") && r.request().method() === "POST",
+  // Returns what is typed in the 6 boxes, e.g. "000000".
+  async getEnteredCode() {
+    const values = await this.codeBoxes.evaluateAll((boxes) =>
+      boxes.map((box) => (box as HTMLInputElement).value),
     );
-    await this.submitBtn.click();
-    return responsePromise;
-  }
-
-  async submitCode(code: string): Promise<Response> {
-    await this.enterCode(code);
-    return this.submit();
+    return values.join("");
   }
 }
 
-export default EvaireOtpPage;
+export default OtpPage;
