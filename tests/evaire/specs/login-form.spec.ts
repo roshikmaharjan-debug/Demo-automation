@@ -57,7 +57,6 @@ test.describe("Login form", () => {
   test("TC-008 login page opens directly with a clean URL", async ({
     page,
   }) => {
-  
     await page.goto("/login");
     await expect(page).toHaveTitle("Eclat login");
     await expect(page).toHaveURL("https://login.qa.evaire.ai/login");
@@ -75,7 +74,6 @@ test.describe("Login form", () => {
     const { loginPage, otpPage, homePage } = pomManager;
     await expect(loginPage.username).toBeVisible();
 
-  
     await page.keyboard.press("Tab");
     await expect(loginPage.username).toBeFocused();
     await page.keyboard.type(user.Username);

@@ -6,7 +6,6 @@ import userCredentials from "../data/userCredentials.json";
 
 const FAILED_ATTEMPTS_BEFORE_LOCKOUT = 5;
 
-
 const lockoutUser = userCredentials.QAL2;
 
 test.describe("Lockout", () => {
@@ -17,7 +16,6 @@ test.describe("Lockout", () => {
     const { loginPage, otpPage } = pomManager;
     const lockoutMessage = page.getByText("Account temporarily locked");
 
-  
     await loginPage.username.fill(lockoutUser.Username);
     for (let i = 1; i <= FAILED_ATTEMPTS_BEFORE_LOCKOUT; i++) {
       await loginPage.password.fill(testData.wrongPassword + i);

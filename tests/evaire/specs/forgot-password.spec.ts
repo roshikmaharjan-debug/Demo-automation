@@ -53,6 +53,6 @@ test.describe("Forgot password", () => {
     await forgotPasswordPage.sendLinkButton.click();
     await expect(forgotPasswordPage.heading2).toBeVisible();
     await forgotPasswordPage.return.click();
-      await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/login$/);
   });
 });

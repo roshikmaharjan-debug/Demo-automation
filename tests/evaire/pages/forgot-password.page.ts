@@ -6,8 +6,8 @@ class ForgotPasswordPage {
   email: Locator;
   sendLinkButton: Locator;
   backButton: Locator;
-  heading2:Locator;
-  return:Locator;
+  heading2: Locator;
+  return: Locator;
 
   constructor(page: Page) {
     this.page = page;

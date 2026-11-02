@@ -22,7 +22,7 @@ class HomePage {
     return this.page.getByRole("button", { name: new RegExp(username) });
   }
 
-  productCard(name: "Capture" ) {
+  productCard(name: "Capture") {
     return this.page.getByAltText(name, { exact: true });
   }
 

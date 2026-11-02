@@ -21,7 +21,7 @@ class OtpPage {
     this.submitButton = page.getByRole("button", { name: "Submit" });
     this.backButton = page.getByRole("button", { name: "Back" });
     this.resendCodeButton = page.getByRole("button", {
-      name: /Resend Code|Sending/,
+      name: "Resend Code",
     });
     this.timer = page.getByText(/^\d:\d{2}$/); // e.g. 0:59
     this.invalidOtpMessage = page.getByText("Invalid OTP");

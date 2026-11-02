@@ -29,7 +29,6 @@ test.describe("Login", () => {
     await expect(homePage.clientSelector).toBeVisible();
     await expect(homePage.userMenu(user.Username)).toBeVisible();
     await expect(homePage.productCard("Capture")).toBeVisible();
-
   });
 
   test("TC-002 shows an error for a wrong password", async ({
@@ -39,7 +38,6 @@ test.describe("Login", () => {
     const { loginPage, otpPage } = pomManager;
 
     await loginPage.login(user.Email, testData.wrongPassword);
-
 
     await expect(loginPage.errorMessage).toBeVisible();
     await expect(otpPage.heading).toBeHidden();
@@ -155,15 +153,18 @@ test.describe("Login", () => {
   test("TC-021 Login button is disabled after a failed login until a field changes", async ({
     pomManager,
   }) => {
-     test.fail();
-        test.info().annotations.push({
-          type: "issue",
-          description:
-            "Login button remains enabled after a failed login when there is a space in the password.",
-        });
+    test.fail();
+    test.info().annotations.push({
+      type: "issue",
+      description:
+        "Login button remains enabled after a failed login when there is a space in the password.",
+    });
     const { loginPage } = pomManager;
 
-    await loginPage.login(testData.unregisteredEmail, testData.wrongPassword + "x  ");
+    await loginPage.login(
+      testData.unregisteredEmail,
+      testData.wrongPassword + "x  ",
+    );
     await expect(loginPage.errorMessage).toBeVisible();
     await expect(loginPage.loginButton).toBeDisabled();
 
