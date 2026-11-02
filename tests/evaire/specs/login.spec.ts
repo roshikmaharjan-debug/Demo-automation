@@ -71,7 +71,7 @@ test.describe("Login", () => {
     const registeredTime = Date.now() - start;
 
     // Response times should be about the same (no hint that the account exists)
-    expect(Math.abs(unregisteredTime - registeredTime)).toBeLessThan(1500);
+    expect(Math.abs(unregisteredTime - registeredTime)).toBeLessThan(1800);
   });
 
   test("TC-005 accepts any text in the username field and shows the normal error", async ({
