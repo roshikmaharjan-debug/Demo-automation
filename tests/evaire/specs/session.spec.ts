@@ -4,7 +4,7 @@ import testData from "../data/testData.json";
 import userCredentials from "../data/userCredentials.json";
 
 // Test cases: TC-012, TC-020, TC-022
-const user = userCredentials.Manager;
+const user = userCredentials.Coder;
 
 test.describe("Session", () => {
   test("TC-012 after logout, Back and Reload do not show the app", async ({
@@ -48,11 +48,10 @@ test.describe("Session", () => {
   });
 
   test("TC-022 logging in on a second browser ends the first session", async ({
+    page,
     browser,
     pomManager,
   }) => {
-    // This test logs your account out everywhere else. Remove this line to run it.
-
     const { loginPage, otpPage, homePage } = pomManager;
 
     // Browser 1: log in
@@ -62,23 +61,27 @@ test.describe("Session", () => {
 
     // Browser 2: a new, separate browser window
     const secondContext = await browser.newContext();
-    const secondPage = await secondContext.newPage();
-    const second = new POMManager(secondPage);
+    try {
+      const secondPage = await secondContext.newPage();
+      const second = new POMManager(secondPage);
 
-    await second.loginPage.goto();
-    await second.loginPage.login(user.Username, user.Password);
-    await expect(second.loginPage.activeSessionMessage).toBeVisible();
-    await expect(second.otpPage.heading).toBeHidden();
+      await second.loginPage.goto();
+      await second.loginPage.login(user.Username, user.Password);
+      await expect(second.loginPage.activeSessionMessage).toBeVisible();
+      await expect(second.otpPage.heading).toBeHidden();
 
-    await second.loginPage.continueAndEndSessionButton.click();
-    await second.otpPage.submitCode(testData.otp);
-    await expect(second.homePage.welcomeText).toBeVisible();
+      await second.loginPage.continueAndEndSessionButton.click();
+      await second.otpPage.submitCode(testData.otp);
+      await expect(second.homePage.welcomeText).toBeVisible();
 
-    // Browser 1: refresh - the session has ended
-    await pomManager.homePage.page.reload();
-    await expect(loginPage.username).toBeVisible();
+      // Browser 1: refresh - the session has ended
+      await page.reload();
+      await expect(loginPage.username).toBeVisible();
 
-    await second.homePage.logoutIfLoggedIn();
-    await secondContext.close();
+      await second.homePage.logoutIfLoggedIn();
+    } finally {
+      // Close the second browser even if an assertion above failed.
+      await secondContext.close();
+    }
   });
 });

@@ -1,12 +1,12 @@
 import { type Locator, type Page } from "@playwright/test";
 
 class InventoryPage {
-  page: Page;
-  items: Locator;
-  filter: Locator;
-  prices: Locator;
-  cart: Locator;
-  backToProductsButton: Locator;
+  readonly page: Page;
+  readonly items: Locator;
+  readonly filter: Locator;
+  readonly prices: Locator;
+  readonly cart: Locator;
+  readonly backToProductsButton: Locator;
 
   constructor(page: Page) {
     this.page = page;

@@ -20,7 +20,7 @@ and a manager that hands everything to a fixture.
 tests/api/booking.spec.ts          uses the api fixture, no URLs here
         |
         v
-api fixture in tests/fixtures/fixtures.ts   gives each test an ApiManager,
+api fixture in tests/saucedemo/fixtures/fixtures.ts   gives each test an ApiManager,
         |                             deletes leftover bookings on teardown
         v
 ApiManager  ----------- builds ----------+
@@ -39,18 +39,18 @@ request. Only `authSession.ts` knows how to log in.
 
 ## Files
 
-| File                                 | Job                                                                                                                                                                                         | Must not                                                                                                                     |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `.env`                               | Hold `API_BASE_URL`, `API_USERNAME` and `API_PASSWORD` for local runs.                                                                                                                      | Be committed. It is in `.gitignore`; `.env.example` shows the variable names.                                                |
-| `tests/api/apiConfig.ts`             | Load `.env` (if present) and return the base URL, username and password. Throw a clear error if any is missing.                                                                             | Hard-code a URL or credential, send requests, or read the environment at import time.                                        |
-| `tests/api/httpClient.ts`            | The only place that sends requests. Create one Playwright `APIRequestContext` with the base URL and JSON headers, send a method + path, return `{ status, body }`, and dispose the context. | Know about bookings, tokens or login. Decide whether a status is "good" or throw on 4xx/5xx — callers and tests decide that. |
-| `tests/api/authSession.ts`           | Call `POST /auth` through the `HttpClient` the first time a token is needed, keep the token for the rest of the worker, and build the `Cookie: token=...` header.                           | Log in before every request, create its own `HttpClient`, or log the password or token.                                      |
-| `tests/api/models/booking.ts`        | TypeScript types for a booking request, the create response and the auth response.                                                                                                          | Contain logic, default values or test data.                                                                                  |
-| `tests/api/clients/bookingClient.ts` | `create`, `getById`, `update`, `delete` for `/booking`. Receives its `HttpClient` and `AuthSession` in the constructor. Remembers which bookings it created so leftovers can be deleted.    | Build an `HttpClient`, call `fetch`/`request` directly, contain assertions, or hide a non-success status from the caller.    |
-| `tests/api/apiManager.ts`            | Build ONE `HttpClient` and ONE `AuthSession`, pass them to every client, and expose `cleanup()` / `dispose()` for the fixture. Same idea as `DbManager`.                                    | Send requests itself or build a second `HttpClient`.                                                                         |
-| `tests/fixtures/fixtures.ts`         | Add an `api` fixture that gives each test an `ApiManager`, and on teardown deletes every booking the test created, even if the test failed, then disposes the request context.              | Make API calls of its own beyond cleanup, or swallow a cleanup failure.                                                      |
-| `tests/api/booking.spec.ts`          | Booking lifecycle test and update-without-token test. Every assertion can fail if the server ignores the request.                                                                           | Contain URLs, credentials, raw requests, or rely on a booking it did not create in the same test.                            |
-| `playwright.config.ts`               | Run `tests/api/**` in an `api` project with no browser and no `setup` dependency; keep them out of the `chromium` project.                                                                  | Hold API URLs or credentials.                                                                                                |
+| File                                   | Job                                                                                                                                                                                         | Must not                                                                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `.env`                                 | Hold `API_BASE_URL`, `API_USERNAME` and `API_PASSWORD` for local runs.                                                                                                                      | Be committed. It is in `.gitignore`; `.env.example` shows the variable names.                                                |
+| `tests/api/apiConfig.ts`               | Load `.env` (if present) and return the base URL, username and password. Throw a clear error if any is missing.                                                                             | Hard-code a URL or credential, send requests, or read the environment at import time.                                        |
+| `tests/api/httpClient.ts`              | The only place that sends requests. Create one Playwright `APIRequestContext` with the base URL and JSON headers, send a method + path, return `{ status, body }`, and dispose the context. | Know about bookings, tokens or login. Decide whether a status is "good" or throw on 4xx/5xx — callers and tests decide that. |
+| `tests/api/authSession.ts`             | Call `POST /auth` through the `HttpClient` the first time a token is needed, keep the token for the rest of the worker, and build the `Cookie: token=...` header.                           | Log in before every request, create its own `HttpClient`, or log the password or token.                                      |
+| `tests/api/models/booking.ts`          | TypeScript types for a booking request, the create response and the auth response.                                                                                                          | Contain logic, default values or test data.                                                                                  |
+| `tests/api/clients/bookingClient.ts`   | `create`, `getById`, `update`, `delete` for `/booking`. Receives its `HttpClient` and `AuthSession` in the constructor. Remembers which bookings it created so leftovers can be deleted.    | Build an `HttpClient`, call `fetch`/`request` directly, contain assertions, or hide a non-success status from the caller.    |
+| `tests/api/apiManager.ts`              | Build ONE `HttpClient` and ONE `AuthSession`, pass them to every client, and expose `cleanup()` / `dispose()` for the fixture. Same idea as `DbManager`.                                    | Send requests itself or build a second `HttpClient`.                                                                         |
+| `tests/saucedemo/fixtures/fixtures.ts` | Add an `api` fixture that gives each test an `ApiManager`, and on teardown deletes every booking the test created, even if the test failed, then disposes the request context.              | Make API calls of its own beyond cleanup, or swallow a cleanup failure.                                                      |
+| `tests/api/booking.spec.ts`            | Booking lifecycle test and update-without-token test. Every assertion can fail if the server ignores the request.                                                                           | Contain URLs, credentials, raw requests, or rely on a booking it did not create in the same test.                            |
+| `playwright.config.ts`                 | Run `tests/api/**` in an `api` project with no browser and no `saucedemo-setup` dependency; keep them out of the `saucedemo` and `evaire` projects.                                         | Hold API URLs or credentials.                                                                                                |
 
 ## Which calls need the token
 
@@ -106,12 +106,13 @@ repository variable `API_BASE_URL` and the secrets `API_USERNAME` and
 variables.
 
 `apiConfig` is read lazily (on the first API call), not when the file is
-imported. UI tests import `tests/fixtures/fixtures.ts` too, and they must not fail
-just because the API variables are missing.
+imported. The SauceDemo UI tests import the same fixtures file
+(`tests/saucedemo/fixtures/fixtures.ts`), and they must not fail just because
+the API variables are missing.
 
 ## Running
 
 ```bash
 npx playwright test tests/api/booking.spec.ts --reporter=line
-npx playwright test --project=api
+npm run test:api
 ```

@@ -3,7 +3,9 @@ import testData from "../data/testData.json";
 import userCredentials from "../data/userCredentials.json";
 
 // Test case: TC-013 (only if a lockout policy is documented)
-
+// Skipped until the lockout policy is confirmed. Before un-skipping, replace
+// this placeholder with the documented number of attempts and check the
+// lockout message text below. Uses QAL2 so a lockout never blocks Coder.
 const FAILED_ATTEMPTS_BEFORE_LOCKOUT = 5;
 
 const lockoutUser = userCredentials.QAL2;

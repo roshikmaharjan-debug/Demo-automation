@@ -3,7 +3,7 @@ import testData from "../data/testData.json";
 import userCredentials from "../data/userCredentials.json";
 
 // Test cases: TC-004, TC-006, TC-008, TC-009
-const user = userCredentials.Manager;
+const user = userCredentials.Coder;
 
 test.describe("Login form", () => {
   test("TC-004 shows required-field errors on empty submit", async ({

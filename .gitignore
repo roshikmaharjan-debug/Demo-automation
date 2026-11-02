@@ -11,3 +11,6 @@ tests/data/*.db-*
 
 # Local API credentials (see .env.example)
 .env
+
+# evaire QA accounts (see tests/evaire/data/userCredentials.example.json)
+tests/evaire/data/userCredentials.json

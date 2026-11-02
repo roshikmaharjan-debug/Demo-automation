@@ -35,45 +35,47 @@ The item test passed before because its generic inventory-item visibility assert
 
 ## Parameterized login test listing
 
-Output of `npx playwright test --list`:
+Output of `npx playwright test --project=saucedemo --project=api --list` on the
+current structure (the `evaire` tests are listed in
+[docs/evaire-login-automation.md](./docs/evaire-login-automation.md)). The
+`login.spec.ts` rows come from the seeded SQLite `users` table, one test per
+user:
 
 ```text
 Listing tests:
-  [setup] › auth.setup.ts:6:6 › authenticate
-  [chromium] › api\demo.spec.ts:3:5 › get api test
-  [chromium] › api\demo.spec.ts:14:5 › post api test
-  [chromium] › api\demo.spec.ts:33:5 › PUT api test
-  [chromium] › api\demo.spec.ts:55:5 › delete api test
-  [chromium] › cart-checkout.spec.ts:4:7 › Cart and checkout › adds two items to the cart
-  [chromium] › cart-checkout.spec.ts:12:7 › Cart and checkout › completes an order and shows confirmation
-  [chromium] › inventory.spec.ts:4:7 › Inventory › displays six items sorted by price from low to high
-  [chromium] › inventory.spec.ts:16:7 › Inventory › opens an item and returns to the inventory
-  [chromium] › login-audit.spec.ts:14:7 › Login audit persistence tests › persists and reads a login audit record
-  [chromium] › login.spec.ts:19:9 › Login › logs in as standard_user
-  [chromium] › login.spec.ts:19:9 › Login › logs in as locked_out_user (error)
-  [chromium] › login.spec.ts:19:9 › Login › logs in as problem_user
-  [chromium] › login.spec.ts:19:9 › Login › logs in as performance_glitch_user
-  [chromium] › login.spec.ts:19:9 › Login › logs in as error_user
-  [chromium] › login.spec.ts:19:9 › Login › logs in as visual_user
-  [chromium] › login.spec.ts:19:9 › Login › logs in as wrong_password_user (error)
-  [chromium] › navigation.spec.ts:3:7 › Navigation › logs out
-  [chromium] › navigation.spec.ts:8:7 › Navigation › opens the About page
-  [chromium] › navigation.spec.ts:13:7 › Navigation › opens the dynamic catalog spinner
-  [chromium] › performance-glitch.spec.ts:6:5 › performance_glitch_user adds the Backpack to the cart
-  [chromium] › problem-user.spec.ts:9:7 › Problem user › completes checkout
-Total: 22 tests in 9 files
+  [saucedemo-setup] › saucedemo/auth.setup.ts:6:6 › authenticate
+  [saucedemo] › saucedemo/specs/cart-checkout.spec.ts:4:7 › Cart and checkout › adds two items to the cart
+  [saucedemo] › saucedemo/specs/cart-checkout.spec.ts:12:7 › Cart and checkout › completes an order and shows confirmation
+  [saucedemo] › saucedemo/specs/inventory.spec.ts:4:7 › Inventory › displays six items sorted by price from low to high
+  [saucedemo] › saucedemo/specs/inventory.spec.ts:16:7 › Inventory › opens an item and returns to the inventory
+  [saucedemo] › saucedemo/specs/login-audit.spec.ts:15:7 › Login audit persistence tests › persists and reads a login audit record
+  [saucedemo] › saucedemo/specs/login.spec.ts:20:9 › Login › logs in as standard_user
+  [saucedemo] › saucedemo/specs/login.spec.ts:20:9 › Login › logs in as locked_out_user (error)
+  [saucedemo] › saucedemo/specs/login.spec.ts:20:9 › Login › logs in as problem_user
+  [saucedemo] › saucedemo/specs/login.spec.ts:20:9 › Login › logs in as performance_glitch_user
+  [saucedemo] › saucedemo/specs/login.spec.ts:20:9 › Login › logs in as error_user
+  [saucedemo] › saucedemo/specs/login.spec.ts:20:9 › Login › logs in as visual_user
+  [saucedemo] › saucedemo/specs/login.spec.ts:20:9 › Login › logs in as wrong_password_user (error)
+  [saucedemo] › saucedemo/specs/navigation.spec.ts:3:7 › Navigation › logs out
+  [saucedemo] › saucedemo/specs/navigation.spec.ts:8:7 › Navigation › opens the About page
+  [saucedemo] › saucedemo/specs/navigation.spec.ts:13:7 › Navigation › opens the dynamic catalog spinner
+  [saucedemo] › saucedemo/specs/performance-glitch.spec.ts:7:5 › performance_glitch_user adds the Backpack to the cart
+  [saucedemo] › saucedemo/specs/problem-user.spec.ts:10:7 › Problem user › completes checkout
+  [api] › api/booking.spec.ts:18:7 › Booking API › full booking lifecycle: create, read, update, delete
+  [api] › api/booking.spec.ts:63:7 › Booking API › update without a token is rejected and changes nothing
+Total: 20 tests in 9 files
 ```
 
 ## Performance glitch user trace
 
-Ran `npx playwright test tests/performance-glitch.spec.ts --trace on --reporter=line` and opened its trace with `npx playwright show-trace`. The trace showed that login took **5.2 seconds**, and the test passed without any changes. Adding a `toBeVisible()` assertion before clicking Add to cart made the test flaky because that assertion has a separate 5-second timeout. The click already waits for the button using the full test timeout, so the assertion was unnecessary; removing it fixed the flakiness.
+Ran `npx playwright test tests/saucedemo/specs/performance-glitch.spec.ts --trace on --reporter=line` and opened its trace with `npx playwright show-trace`. The trace showed that login took **5.2 seconds**, and the test passed without any changes. Adding a `toBeVisible()` assertion before clicking Add to cart made the test flaky because that assertion has a separate 5-second timeout. The click already waits for the button using the full test timeout, so the assertion was unnecessary; removing it fixed the flakiness.
 
 ![Playwright trace timeline with the 5.2-second Login click selected](./docs/performance-glitch-trace.png)
 
 ## Database audit insert mutation proof
 
 Temporarily changed `UserRepository.insertLoginResult` into a no-op, then ran
-`npx playwright test tests/login-audit.spec.ts --workers=1 --reporter=line`.
+`npx playwright test tests/saucedemo/specs/login-audit.spec.ts --workers=1 --reporter=line`.
 The audit test failed at `toHaveLength(1)` with **Expected length: 1; Received
 length: 0**, demonstrating that the test detects a missing insert. Restored the
 repository insert and reran `npm test -- --workers=1 --reporter=line`; all 22

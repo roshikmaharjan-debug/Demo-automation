@@ -1,17 +1,17 @@
 import { type Locator, type Page } from "@playwright/test";
 
 class LoginPage {
-  page: Page;
-  username: Locator;
-  password: Locator;
-  showPasswordButton: Locator;
-  forgotPasswordLink: Locator;
-  loginButton: Locator;
-  errorMessage: Locator;
-  usernameRequiredError: Locator;
-  passwordRequiredError: Locator;
-  activeSessionMessage: Locator;
-  continueAndEndSessionButton: Locator;
+  readonly page: Page;
+  readonly username: Locator;
+  readonly password: Locator;
+  readonly showPasswordButton: Locator;
+  readonly forgotPasswordLink: Locator;
+  readonly loginButton: Locator;
+  readonly errorMessage: Locator;
+  readonly usernameRequiredError: Locator;
+  readonly passwordRequiredError: Locator;
+  readonly activeSessionMessage: Locator;
+  readonly continueAndEndSessionButton: Locator;
 
   constructor(page: Page) {
     this.page = page;

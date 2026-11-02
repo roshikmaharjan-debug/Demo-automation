@@ -76,19 +76,17 @@ test.describe("Login", () => {
     );
   });
 
-  test("TC-005 accepts any text in the username field and shows the normal error", async ({
-    page,
-    pomManager,
-  }) => {
-    const { loginPage } = pomManager;
+  // One test per value, so the report shows exactly which input failed.
+  for (const value of testData.malformedUsernames) {
+    test(`TC-005 accepts "${value}" in the username field and shows the normal error`, async ({
+      pomManager,
+    }) => {
+      const { loginPage } = pomManager;
 
-    for (const value of testData.malformedUsernames) {
-      await loginPage.goto();
       await loginPage.login(value, testData.wrongPassword);
-
       await expect(loginPage.errorMessage).toBeVisible();
-    }
-  });
+    });
+  }
 
   test("TC-011 email ignores case and spaces, password does not", async ({
     pomManager,

@@ -3,7 +3,7 @@ import testData from "../data/testData.json";
 import userCredentials from "../data/userCredentials.json";
 
 // Test cases: TC-016, TC-017, TC-018
-const user = userCredentials.Manager;
+const user = userCredentials.Coder;
 
 test.describe("OTP", () => {
   test("TC-016 rejects letters, short codes and a wrong code", async ({

@@ -1,15 +1,15 @@
 import { type Locator, type Page } from "@playwright/test";
 
 class OtpPage {
-  page: Page;
-  heading: Locator;
-  sentToText: Locator;
-  codeBoxes: Locator;
-  submitButton: Locator;
-  backButton: Locator;
-  resendCodeButton: Locator;
-  timer: Locator;
-  invalidOtpMessage: Locator;
+  readonly page: Page;
+  readonly heading: Locator;
+  readonly sentToText: Locator;
+  readonly codeBoxes: Locator;
+  readonly submitButton: Locator;
+  readonly backButton: Locator;
+  readonly resendCodeButton: Locator;
+  readonly timer: Locator;
+  readonly invalidOtpMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;

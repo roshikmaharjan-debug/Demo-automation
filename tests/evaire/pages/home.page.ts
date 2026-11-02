@@ -1,14 +1,16 @@
 import { type Locator, type Page } from "@playwright/test";
 
-// API the app calls to check who is logged in.
-const CURRENT_USER_API = "https://api.login.qa.evaire.ai/api/v1/auth/me";
-const LOGOUT_API = "https://api.login.qa.evaire.ai/api/v1/auth/logout";
+// Backend the app calls to check who is logged in and to log out.
+// Override with EVAIRE_API_URL to point the tests at another environment.
+const API_URL = "https://api.login.qa.evaire.ai";
+const CURRENT_USER_API = `${API_URL}/api/v1/auth/me`;
+const LOGOUT_API = `${API_URL}/api/v1/auth/logout`;
 
 class HomePage {
-  page: Page;
-  welcomeText: Locator;
-  clientSelector: Locator;
-  logOutMenuItem: Locator;
+  readonly page: Page;
+  readonly welcomeText: Locator;
+  readonly clientSelector: Locator;
+  readonly logOutMenuItem: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -22,7 +24,7 @@ class HomePage {
     return this.page.getByRole("button", { name: new RegExp(username) });
   }
 
-  productCard(name: "Capture") {
+  productCard(name: "Capture" | "Analyze" | "Manage") {
     return this.page.getByAltText(name, { exact: true });
   }
 
