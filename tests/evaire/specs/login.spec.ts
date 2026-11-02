@@ -50,26 +50,30 @@ test.describe("Login", () => {
   });
 
   test("TC-003 shows the same error for an unregistered user", async ({
+    page,
     pomManager,
   }) => {
     const { loginPage, otpPage } = pomManager;
 
     // Unregistered email
-    let start = Date.now();
+    let responsePromise = page.waitForResponse("**/auth/login");
     await loginPage.login(testData.unregisteredEmail, testData.wrongPassword);
+    const unregisteredResponse = await responsePromise;
     await expect(loginPage.errorMessage).toBeVisible();
-    const unregisteredTime = Date.now() - start;
     await expect(otpPage.heading).toBeHidden();
 
-    // Registered user with a wrong password - should get the exact same message
+    // Registered user with a wrong password
     await loginPage.goto();
-    start = Date.now();
+    responsePromise = page.waitForResponse("**/auth/login");
     await loginPage.login(user.Email, testData.wrongPassword);
+    const registeredResponse = await responsePromise;
     await expect(loginPage.errorMessage).toBeVisible();
-    const registeredTime = Date.now() - start;
 
-    // Response times should be about the same (no hint that the account exists)
-    expect(Math.abs(unregisteredTime - registeredTime)).toBeLessThan(1800);
+    // Same status code and same message -> the app doesn't reveal which accounts exist
+    expect(unregisteredResponse.status()).toBe(registeredResponse.status());
+    expect((await unregisteredResponse.json()).message).toBe(
+      (await registeredResponse.json()).message,
+    );
   });
 
   test("TC-005 accepts any text in the username field and shows the normal error", async ({

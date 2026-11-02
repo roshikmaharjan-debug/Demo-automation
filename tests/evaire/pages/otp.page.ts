@@ -41,29 +41,6 @@ class OtpPage {
     await this.enterCode(code);
     await this.submitButton.click();
   }
-
-  // Pastes the code into the first box, like a user doing Ctrl+V.
-  async pasteCode(code: string) {
-    await this.codeBoxes.first().click();
-    await this.codeBoxes.first().evaluate((box, text) => {
-      const clipboard = new DataTransfer();
-      clipboard.setData("text/plain", text);
-      box.dispatchEvent(
-        new ClipboardEvent("paste", {
-          clipboardData: clipboard,
-          bubbles: true,
-        }),
-      );
-    }, code);
-  }
-
-  // Returns what is typed in the 6 boxes, e.g. "000000".
-  async getEnteredCode() {
-    const values = await this.codeBoxes.evaluateAll((boxes) =>
-      boxes.map((box) => (box as HTMLInputElement).value),
-    );
-    return values.join("");
-  }
 }
 
 export default OtpPage;

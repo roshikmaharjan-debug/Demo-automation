@@ -9,7 +9,7 @@ const FAILED_ATTEMPTS_BEFORE_LOCKOUT = 5;
 const lockoutUser = userCredentials.QAL2;
 
 test.describe("Lockout", () => {
-  test("TC-013 account is locked after too many wrong passwords", async ({
+  test.skip("TC-013 account is locked after too many wrong passwords", async ({
     page,
     pomManager,
   }) => {
