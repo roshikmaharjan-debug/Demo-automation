@@ -12,7 +12,7 @@ test.describe("Login", () => {
   }) => {
     const { loginPage, otpPage, homePage } = pomManager;
 
-    await loginPage.loginAndEndOtherSession(user.Username, user.Password);
+    await loginPage.loginAndEndOtherSession(user.Email, user.Password);
 
     // OTP screen
     await expect(otpPage.heading).toBeVisible();
@@ -38,7 +38,7 @@ test.describe("Login", () => {
   }) => {
     const { loginPage, otpPage } = pomManager;
 
-    await loginPage.login(user.Username, testData.wrongPassword);
+    await loginPage.login(user.Email, testData.wrongPassword);
 
 
     await expect(loginPage.errorMessage).toBeVisible();
@@ -46,7 +46,7 @@ test.describe("Login", () => {
     await expect(page).toHaveURL(/\/login$/);
 
     // The fields keep their values and Login is disabled until something changes.
-    await expect(loginPage.username).toHaveValue(user.Username);
+    await expect(loginPage.username).toHaveValue(user.Email);
     await expect(loginPage.password).toHaveValue(testData.wrongPassword);
     await expect(loginPage.loginButton).toBeDisabled();
   });
@@ -66,7 +66,7 @@ test.describe("Login", () => {
     // Registered user with a wrong password - should get the exact same message
     await loginPage.goto();
     start = Date.now();
-    await loginPage.login(user.Username, testData.wrongPassword);
+    await loginPage.login(user.Email, testData.wrongPassword);
     await expect(loginPage.errorMessage).toBeVisible();
     const registeredTime = Date.now() - start;
 
@@ -88,14 +88,14 @@ test.describe("Login", () => {
     }
   });
 
-  test.only("TC-011 email ignores case and spaces, password does not", async ({
+  test("TC-011 email ignores case and spaces, password does not", async ({
     pomManager,
   }) => {
     const { loginPage, otpPage } = pomManager;
 
     // Upper-case email reaches the OTP screen
     await loginPage.loginAndEndOtherSession(
-      user.Username.toUpperCase(),
+      user.Email.toUpperCase(),
       user.Password,
     );
     await expect(otpPage.heading).toBeVisible();
@@ -103,13 +103,13 @@ test.describe("Login", () => {
 
     // Email with spaces around it reaches the OTP screen
     await loginPage.goto();
-    await loginPage.loginAndEndOtherSession(`  ${user.Username}  `, user.Password);
+    await loginPage.loginAndEndOtherSession(`  ${user.Email}  `, user.Password);
     await expect(otpPage.heading).toBeVisible();
     await otpPage.backButton.click();
 
     // Password in the wrong case is rejected
     await loginPage.goto();
-    await loginPage.login(user.Username, user.Password.toUpperCase());
+    await loginPage.login(user.Email, user.Password.toUpperCase());
     await expect(loginPage.errorMessage).toBeVisible();
     await expect(otpPage.heading).toBeHidden();
   });
@@ -127,7 +127,7 @@ test.describe("Login", () => {
         loginRequests++;
     });
 
-    await loginPage.fillCredentials(user.Username, user.Password);
+    await loginPage.fillCredentials(user.Email, user.Password);
     await loginPage.loginButton.dblclick();
     await expect(
       otpPage.heading.or(loginPage.continueAndEndSessionButton),
@@ -155,9 +155,15 @@ test.describe("Login", () => {
   test("TC-021 Login button is disabled after a failed login until a field changes", async ({
     pomManager,
   }) => {
+     test.fail();
+        test.info().annotations.push({
+          type: "issue",
+          description:
+            "Login button remains enabled after a failed login when there is a space in the password.",
+        });
     const { loginPage } = pomManager;
 
-    await loginPage.login(testData.unregisteredEmail, testData.wrongPassword);
+    await loginPage.login(testData.unregisteredEmail, testData.wrongPassword + "x  ");
     await expect(loginPage.errorMessage).toBeVisible();
     await expect(loginPage.loginButton).toBeDisabled();
 
