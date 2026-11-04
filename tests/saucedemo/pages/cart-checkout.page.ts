@@ -1,13 +1,13 @@
-import { Locator, Page } from "@playwright/test";
+import { type Locator, type Page } from "@playwright/test";
 
 class CartCheckoutPage {
-  page: Page;
-  checkoutButton: Locator;
-  firstName: Locator;
-  lastName: Locator;
-  postalCode: Locator;
-  continueButton: Locator;
-  finishButton: Locator;
+  readonly page: Page;
+  readonly checkoutButton: Locator;
+  readonly firstName: Locator;
+  readonly lastName: Locator;
+  readonly postalCode: Locator;
+  readonly continueButton: Locator;
+  readonly finishButton: Locator;
 
   constructor(page: Page) {
     this.page = page;

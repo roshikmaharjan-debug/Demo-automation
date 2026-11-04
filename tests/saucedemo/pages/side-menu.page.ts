@@ -1,11 +1,11 @@
-import { Locator, Page } from "@playwright/test";
+import { type Locator, type Page } from "@playwright/test";
 
 class SideMenuPage {
-  menuButton: Locator;
-  logoutButton: Locator;
-  catalogButton: Locator;
-  spinnerButton: Locator;
-  aboutLink: Locator;
+  readonly menuButton: Locator;
+  readonly logoutButton: Locator;
+  readonly catalogButton: Locator;
+  readonly spinnerButton: Locator;
+  readonly aboutLink: Locator;
 
   constructor(page: Page) {
     this.menuButton = page.getByRole("button", { name: "Open Menu" });

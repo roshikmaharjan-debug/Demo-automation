@@ -2,8 +2,9 @@
 
 This document describes the database design and answers the design questions
 from the database-testing task. The database is local test infrastructure: it
-provides login test data and a place for the audit test to prove a write and
-read. Sauce Demo itself does not connect to this local SQLite database.
+provides the users for the parameterized SauceDemo login test
+(`tests/saucedemo/specs/login.spec.ts`) and a place for the audit test to prove
+a write and read. Sauce Demo itself does not connect to this local SQLite database.
 
 ## Design questions
 
@@ -25,9 +26,7 @@ separate processes, so each worker has its own in-process connection; the
 connection is closed when the test-scoped `db` fixture tears down. The suite's
 brief local reads and writes do not need a separate journaling mode.
 
-### Why call `userRepository.findByUsername(name)` instead of running SQL in a
-
-test?
+### Why call `userRepository.findByUsername(name)` instead of running SQL in a test?
 
 The named method gives tests a small, meaningful API and keeps table and column
 details inside the repository/query layers. If the SQL or schema changes, the
@@ -35,9 +34,7 @@ repository can be updated without rewriting every test. It also provides a
 typed `UserRow` result, and the query uses a bound username parameter. Tests can
 focus on behavior rather than SQL construction.
 
-### Why create the connection on the first query rather than when config is
-
-imported?
+### Why create the connection on the first query rather than when config is imported?
 
 Importing configuration should only determine the database path; it should not
 open files or mutate state. A lazy connection avoids file creation and locks
@@ -58,10 +55,10 @@ worker teardown is reliable when a test fails.
 ## Layer diagram
 
 ```text
-tests/login-audit.spec.ts
+tests/saucedemo/specs/login-audit.spec.ts
         |
         v
-db fixture in fixtures/fixtures.ts
+db fixture in tests/saucedemo/fixtures/fixtures.ts
         |
         v
 DbManager
@@ -81,18 +78,18 @@ DbConnection -----> dbConfig -----> SQLite file
 
 Each layer has one job:
 
-| File                                      | Job                                                                                              | Must not                                                           |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| `tests/db/dbConfig.ts`                    | Resolve the configured SQLite file path from `DB_PATH`, defaulting to `tests/data/test-data.db`. | Open a database connection.                                        |
-| `tests/db/dbConnection.ts`                | Lazily open/cache the SQLite connection in rollback-journal mode and close it.                   | Contain SQL queries.                                               |
-| `tests/db/sqlExecutor.ts`                 | Execute prepared read and write statements with bound parameters.                                | Know table-specific repository methods or business rules.          |
-| `tests/db/queries/userSqlScripts.ts`      | Export named SQL statements.                                                                     | Contain functions or interpolate user values into SQL strings.     |
-| `tests/db/repositories/userRepository.ts` | Expose named, typed methods for user and login-result data using its injected executor.          | Build inline SQL strings or manage the connection lifecycle.       |
-| `tests/db/dbManager.ts`                   | Construct one executor, inject it into repositories, and expose them to the fixture.             | Run SQL or seed records.                                           |
-| `fixtures/fixtures.ts`                    | Provide a `DbManager` to tests and close the connection during teardown.                         | Hide database errors or perform test-specific queries.             |
-| `scripts/seed-db.ts`                      | Create the schema and idempotently upsert sample users.                                          | Be imported or run by individual tests.                            |
-| `tests/global-setup.ts`                   | Seed the database before Playwright starts its projects.                                         | Contain schema or query definitions.                               |
-| `tests/login-audit.spec.ts`               | Verify a browser login and an explicit database audit write/read.                                | Contain raw SQL or assume Sauce Demo writes to the local database. |
+| File                                        | Job                                                                                              | Must not                                                           |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `tests/db/dbConfig.ts`                      | Resolve the configured SQLite file path from `DB_PATH`, defaulting to `tests/data/test-data.db`. | Open a database connection.                                        |
+| `tests/db/dbConnection.ts`                  | Lazily open/cache the SQLite connection in rollback-journal mode and close it.                   | Contain SQL queries.                                               |
+| `tests/db/sqlExecutor.ts`                   | Execute prepared read and write statements with bound parameters.                                | Know table-specific repository methods or business rules.          |
+| `tests/db/queries/userSqlScripts.ts`        | Export named SQL statements.                                                                     | Contain functions or interpolate user values into SQL strings.     |
+| `tests/db/repositories/userRepository.ts`   | Expose named, typed methods for user and login-result data using its injected executor.          | Build inline SQL strings or manage the connection lifecycle.       |
+| `tests/db/dbManager.ts`                     | Construct one executor, inject it into repositories, and expose them to the fixture.             | Run SQL or seed records.                                           |
+| `tests/saucedemo/fixtures/fixtures.ts`      | Provide a `DbManager` to tests and close the connection during teardown.                         | Hide database errors or perform test-specific queries.             |
+| `scripts/seed-db.ts`                        | Create the schema and idempotently upsert sample users.                                          | Be imported or run by individual tests.                            |
+| `tests/global-setup.ts`                     | Seed the database before Playwright starts its projects.                                         | Contain schema or query definitions.                               |
+| `tests/saucedemo/specs/login-audit.spec.ts` | Verify a browser login and an explicit database audit write/read.                                | Contain raw SQL or assume Sauce Demo writes to the local database. |
 
 ## Database path and initialization
 

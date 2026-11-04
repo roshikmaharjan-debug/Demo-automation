@@ -1,13 +1,21 @@
 {
   "name": "playwright-demo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "Playwright Test + TypeScript suites for SauceDemo (UI), Restful Booker (API) and the evaire Eclat login (UI).",
   "scripts": {
     "test": "playwright test",
     "seed": "tsx scripts/seed-db.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:evaire": "playwright test --project=evaire",
+    "test:saucedemo": "playwright test --project=saucedemo",
+    "test:api": "playwright test --project=api",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report"
+  },
+  "engines": {
+    "node": ">=20.12"
   },
   "keywords": [],
   "author": "",
@@ -18,7 +26,6 @@
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.6.4",
     "prettier": "^3.9.10",
-    "ts-node": "^10.9.2",
     "tsx": "^4.23.15"
   },
   "dependencies": {
