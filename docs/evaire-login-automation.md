@@ -23,12 +23,9 @@ npx playwright test --project=evaire --headed    # watch the browser
 npm run report                                   # open the HTML report
 ```
 
-Optional environment variables (both default to QA):
-
-| Variable          | Default                          | Used for                          |
-| ----------------- | -------------------------------- | --------------------------------- |
-| `EVAIRE_BASE_URL` | `https://login.qa.evaire.ai`     | `baseURL` of the `evaire` project |
-| `EVAIRE_API_URL`  | `https://api.login.qa.evaire.ai` | `/auth/me` and `/auth/logout`     |
+Set `EVAIRE_BASE_URL` to run the UI against another environment (the default
+is `https://login.qa.evaire.ai`). The `/auth/me` and `/auth/logout` calls in
+`pages/home.page.ts` always go to the QA API, `https://api.login.qa.evaire.ai`.
 
 ## Folder
 

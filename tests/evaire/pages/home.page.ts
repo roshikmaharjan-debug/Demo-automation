@@ -1,7 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 
 // Backend the app calls to check who is logged in and to log out.
-// Override with EVAIRE_API_URL to point the tests at another environment.
 const API_URL = "https://api.login.qa.evaire.ai";
 const CURRENT_USER_API = `${API_URL}/api/v1/auth/me`;
 const LOGOUT_API = `${API_URL}/api/v1/auth/logout`;

@@ -20,11 +20,6 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Check formatting
         run: npm run format:check
-
-      # userCredentials.json is git-ignored, so CI rebuilds it from the
-      # EVAIRE_USER_CREDENTIALS secret (the whole JSON file pasted as the value).
-      # Without the secret (for example on pull requests from forks) the evaire
-      # tests are skipped instead of failing.
       - name: Write evaire credentials
         id: evaire
         env:

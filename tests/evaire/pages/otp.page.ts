@@ -27,12 +27,11 @@ class OtpPage {
     this.invalidOtpMessage = page.getByText("Invalid OTP");
   }
 
-  // Types the code one digit at a time, starting in the first box.
-  // Ctrl+A before each digit replaces any digit that is already in the box.
+
   async enterCode(code: string) {
     await this.codeBoxes.first().focus();
     for (const digit of code) {
-      await this.page.keyboard.press("ControlOrMeta+a");
+
       await this.page.keyboard.type(digit);
     }
   }
