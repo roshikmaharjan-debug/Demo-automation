@@ -27,11 +27,9 @@ class OtpPage {
     this.invalidOtpMessage = page.getByText("Invalid OTP");
   }
 
-
   async enterCode(code: string) {
     await this.codeBoxes.first().focus();
     for (const digit of code) {
-
       await this.page.keyboard.type(digit);
     }
   }
